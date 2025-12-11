@@ -50,8 +50,10 @@ export function AddressSearch({ onSelect }: AddressSearchProps) {
           console.log(`📋 Found ${response.addresses.length} addresses`)
           // Сохраняем в кэш
           if (searchCache.size >= MAX_CACHE_SIZE) {
-            const firstKey = searchCache.keys().next().value
+          const firstKey = searchCache.keys().next().value
+          if (firstKey) {
             searchCache.delete(firstKey)
+          }
           }
           searchCache.set(query.toLowerCase(), response.addresses)
           
