@@ -72,6 +72,7 @@ export interface Review {
   status: ReviewStatus;
   createdAt: string;
   publishedAt: string | null;
+  rejectionReason?: string | null;
   user: User;
   apartment: Apartment;
   ratings: Rating[];
