@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  GUEST
+  RENTER
+  MODERATOR
+  ADMIN
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RatingCriterion {
+  TECHNICAL_CONDITION    // Техническое состояние и ремонт
+  CLEANLINESS            // Чистота и гигиена
+  SAFETY                 // Безопасность района и дома
+  COMFORT                // Комфорт проживания (шум, соседи)
+  LANDLORD_HONESTY       // Честность и адекватность арендодателя
+  PRICE_QUALITY          // Соотношение цены и качества
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String?   @unique
+  name          String
+  avatar        String?
+  passwordHash  String?
+  dateOfBirth   DateTime? // Для проверки 18+
+  role          UserRole  @default(RENTER)
+  
+  // OAuth
+  yandexId      String?   @unique
+  vkId          String?   @unique
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  reviews       Review[]
+  moderationLogs ModerationLog[]
+  
+  @@index([email])
+  @@index([yandexId])
+  @@index([vkId])
+}
+
+model Address {
+  id          String     @id @default(uuid())
+  country     String
+  city        String
+  street      String
+  building    String
+  latitude    Float?
+  longitude   Float?
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  apartments  Apartment[]
+  
+  @@unique([country, city, street, building])
+  @@index([city, street])
+}
+
+model Apartment {
+  id          String    @id @default(uuid())
+  addressId   String
+  number      String    // Номер квартиры/помещения
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  address     Address   @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  reviews     Review[]
+  
+  @@unique([addressId, number])
+  @@index([addressId])
+}
+
+model Review {
+  id              String        @id @default(uuid())
+  userId          String
+  apartmentId     String
+  comment         String        @db.VarChar(100)
+  averageRating   Float
+  
+  periodFrom      DateTime
+  periodTo        DateTime
+  
+  status          ReviewStatus  @default(PENDING)
+  rejectionReason String?
+  
+  // Монетизация (для будущего)
+  canBeDeleted    Boolean       @default(false)
+  deletionRequested Boolean     @default(false)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  publishedAt     DateTime?
+  
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apartment       Apartment     @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  ratings         Rating[]
+  photos          Photo[]
+  moderationLogs  ModerationLog[]
+  
+  @@index([apartmentId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Rating {
+  id          String          @id @default(uuid())
+  reviewId    String
+  criterion   RatingCriterion
+  score       Int             // 1-5
+  
+  review      Review          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  
+  @@unique([reviewId, criterion])
+  @@index([reviewId])
+}
+
+model Photo {
+  id          String   @id @default(uuid())
+  reviewId    String
+  url         String
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  
+  createdAt   DateTime @default(now())
+  
+  review      Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  
+  @@index([reviewId])
+}
+
+model ModerationLog {
+  id          String   @id @default(uuid())
+  reviewId    String
+  moderatorId String
+  action      String   // APPROVED, REJECTED
+  reason      String?
+  
+  createdAt   DateTime @default(now())
+  
+  review      Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  moderator   User     @relation(fields: [moderatorId], references: [id])
+  
+  @@index([reviewId])
+  @@index([moderatorId])
+}
+

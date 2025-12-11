@@ -1,0 +1,49 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import passport from './config/passport';
+import { errorHandler } from './middleware/errorHandler';
+import authRoutes from './routes/auth';
+import addressRoutes from './routes/addresses';
+import apartmentRoutes from './routes/apartments';
+import reviewRoutes from './routes/reviews';
+import moderationRoutes from './routes/moderation';
+import uploadRoutes from './routes/upload';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
+
+// Static files for uploaded images
+app.use('/uploads', express.static('uploads'));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/addresses', addressRoutes);
+app.use('/api/apartments', apartmentRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/moderation', moderationRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Error handler
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+});
+

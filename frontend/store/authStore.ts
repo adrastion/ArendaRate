@@ -1,0 +1,54 @@
+import { create } from 'zustand'
+import { User } from '@/types'
+import { auth } from '@/lib/auth'
+
+interface AuthState {
+  user: User | null
+  isLoading: boolean
+  setUser: (user: User | null) => void
+  login: (email: string, password: string) => Promise<void>
+  register: (data: {
+    email: string
+    password: string
+    name: string
+    dateOfBirth: string
+  }) => Promise<void>
+  logout: () => void
+  checkAuth: () => Promise<void>
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isLoading: true,
+
+  setUser: (user) => set({ user, isLoading: false }),
+
+  login: async (email, password) => {
+    const user = await auth.login(email, password)
+    set({ user, isLoading: false })
+  },
+
+  register: async (data) => {
+    const user = await auth.register(data)
+    set({ user, isLoading: false })
+  },
+
+  logout: () => {
+    auth.logout()
+    set({ user: null, isLoading: false })
+  },
+
+  checkAuth: async () => {
+    if (auth.isAuthenticated()) {
+      try {
+        const user = await auth.getCurrentUser()
+        set({ user, isLoading: false })
+      } catch {
+        set({ user: null, isLoading: false })
+      }
+    } else {
+      set({ user: null, isLoading: false })
+    }
+  },
+}))
+

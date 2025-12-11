@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+/* Исправление для полей ввода - всегда темный текст на светлом фоне */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="file"],
+input[type="number"],
+textarea,
+select {
+  color: #111827 !important; /* gray-900 */
+  background-color: #ffffff !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important; /* gray-500 */
+}
+
+/* Исправление для выпадающих списков и результатов поиска */
+button {
+  color: inherit;
+}
+
+/* Leaflet CSS - базовые стили */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+/* Контролы карты (масштаб, слои) должны быть поверх других элементов */
+.leaflet-control {
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+/* Убедиться, что контролы масштабирования видны и доступны */
+.leaflet-control-zoom {
+  z-index: 1000 !important;
+}
+
+/* Контрол слоев */
+.leaflet-control-layers {
+  z-index: 1000 !important;
+  background: white !important;
+  border-radius: 5px !important;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
+}
+
+/* Контейнер для контролов в левом нижнем углу (кнопки масштабирования) */
+.leaflet-bottom.leaflet-left {
+  margin-bottom: 20px !important;
+  margin-left: 10px !important;
+}
+
+/* Контейнер для контролов в правом нижнем углу (переключатель слоев) */
+.leaflet-bottom.leaflet-right {
+  margin-bottom: 20px !important;
+  margin-right: 10px !important;
+}
+
+.leaflet-control-layers-toggle {
+  background-color: white !important;
+  width: 36px !important;
+  height: 36px !important;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>') !important;
+  background-size: 20px 20px !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.leaflet-control-layers-expanded {
+  padding: 10px !important;
+  background-color: white !important;
+}
+
+/* Кастомные маркеры */
+.custom-marker-active,
+.custom-marker-inactive {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Убедиться, что текст в модальных окнах и карточках темный */
+.modal-content,
+.card,
+.dropdown-menu {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+/* Исправление для всех элементов с белым фоном */
+.bg-white {
+  color: #111827 !important;
+}
+
+.bg-white * {
+  color: inherit;
+}
+
+.bg-white .text-gray-900,
+.bg-white .font-medium,
+.bg-white .font-semibold,
+.bg-white .font-bold {
+  color: #111827 !important;
+}
+
+/* Убедиться, что элементы поверх карты могут получать клики */
+.apartment-list,
+.apartment-list * {
+  pointer-events: auto !important;
+}
+
