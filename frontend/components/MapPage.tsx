@@ -153,7 +153,7 @@ export function MapPage() {
       console.log('Address loaded:', response)
       
       const totalReviewsCount = response.apartments.reduce(
-        (sum, apt) => sum + apt.reviewsCount,
+        (sum, apt) => sum + (apt.reviewsCount ?? 0),
         0
       )
       
