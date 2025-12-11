@@ -158,8 +158,8 @@ export function Map({ markers, onMarkerClick }: MapProps) {
         center={[55.751574, 37.573856]} // Москва по умолчанию
         zoom={10}
         style={{ height: '100%', width: '100%', zIndex: 1 }}
-        whenCreated={(mapInstance) => {
-          mapRef.current = mapInstance
+        whenReady={({ target }) => {
+          mapRef.current = target
         }}
         zoomControl={true}
       >
