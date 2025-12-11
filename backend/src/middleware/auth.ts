@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { createError } from './errorHandler';
 import { UserRole } from '@prisma/client';
@@ -12,12 +12,13 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticate = async (
-  req: AuthRequest,
+export const authenticate: RequestHandler = async (
+  req,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const authReq = req as AuthRequest;
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
@@ -37,7 +38,7 @@ export const authenticate = async (
       throw createError('User not found', 401);
     }
 
-    req.user = user;
+    authReq.user = user;
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
@@ -48,12 +49,13 @@ export const authenticate = async (
 };
 
 export const requireRole = (...roles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authReq = req as AuthRequest;
+    if (!authReq.user) {
       return next(createError('Authentication required', 401));
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(authReq.user.role)) {
       return next(createError('Insufficient permissions', 403));
     }
 
@@ -61,12 +63,13 @@ export const requireRole = (...roles: UserRole[]) => {
   };
 };
 
-export const optionalAuth = async (
-  req: AuthRequest,
+export const optionalAuth: RequestHandler = async (
+  req,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const authReq = req as AuthRequest;
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (token) {
@@ -80,7 +83,7 @@ export const optionalAuth = async (
       });
 
       if (user) {
-        req.user = user;
+        authReq.user = user;
       }
     }
 

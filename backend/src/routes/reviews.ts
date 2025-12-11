@@ -1,7 +1,7 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import { RatingCriterion, ReviewStatus } from '@prisma/client';
-import { authenticate, AuthRequest, requireRole } from '../middleware/auth';
+import { authenticate, requireRole } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
 
@@ -29,7 +29,7 @@ router.post(
       .withMessage('Invalid rating criterion'),
     body('ratings.*.score').isInt({ min: 1, max: 5 }).withMessage('Score must be 1-5'),
   ],
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -104,7 +104,7 @@ router.post(
 );
 
 // Получение отзывов пользователя
-router.get('/my', authenticate, async (req: AuthRequest, res, next) => {
+router.get('/my', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const reviews = await prisma.review.findMany({
       where: { userId: req.user!.id },
@@ -145,7 +145,7 @@ router.put(
       .withMessage('Invalid rating criterion'),
     body('ratings.*.score').isInt({ min: 1, max: 5 }).withMessage('Score must be 1-5'),
   ],
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -238,7 +238,7 @@ router.put(
 );
 
 // Получение конкретного отзыва
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const review = await prisma.review.findUnique({
       where: { id: req.params.id },

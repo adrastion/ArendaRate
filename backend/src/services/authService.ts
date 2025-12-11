@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export interface RegisterData {
   email: string;
@@ -14,6 +15,18 @@ export interface LoginData {
   email: string;
   password: string;
 }
+
+const getJwtToken = (userId: string) => {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw createError('JWT secret is not configured', 500);
+  }
+
+  const expiresIn = (process.env.JWT_EXPIRES_IN || '7d') as jwt.SignOptions['expiresIn'];
+
+  return jwt.sign({ userId }, secret, { expiresIn });
+};
 
 export const authService = {
   async register(data: RegisterData) {
@@ -55,11 +68,7 @@ export const authService = {
     });
 
     // Генерация JWT токена
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
+    const token = getJwtToken(user.id);
 
     return { user, token };
   },
@@ -79,11 +88,7 @@ export const authService = {
       throw createError('Invalid email or password', 401);
     }
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
+    const token = getJwtToken(user.id);
 
     return {
       user: {
@@ -106,10 +111,13 @@ export const authService = {
     avatar: string | null
   ) {
     const fieldName = provider === 'yandex' ? 'yandexId' : 'vkId';
+    const providerWhere: Prisma.UserWhereUniqueInput = {
+      [fieldName]: providerId,
+    };
 
     // Поиск существующего пользователя
     let user = await prisma.user.findUnique({
-      where: { [fieldName]: providerId },
+      where: providerWhere,
     });
 
     if (!user && email) {
@@ -140,11 +148,7 @@ export const authService = {
       });
     }
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
+    const token = getJwtToken(user.id);
 
     return {
       user: {

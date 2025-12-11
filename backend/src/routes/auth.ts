@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import passport from 'passport';
 import { authService } from '../services/authService';
@@ -16,7 +16,7 @@ router.post(
     body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
     body('dateOfBirth').isISO8601().withMessage('Invalid date of birth'),
   ],
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -44,7 +44,7 @@ router.post(
     body('email').isEmail().withMessage('Invalid email'),
     body('password').notEmpty().withMessage('Password is required'),
   ],
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -64,12 +64,12 @@ router.post(
 );
 
 // Получение текущего пользователя
-router.get('/me', authenticate, async (req, res, next) => {
+router.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { prisma } = await import('../lib/prisma');
 
     const user = await prisma.user.findUnique({
-      where: { id: (req as any).user.id },
+      where: { id: req.user!.id },
       select: {
         id: true,
         email: true,
@@ -96,9 +96,9 @@ router.get('/yandex', passport.authenticate('yandex'));
 router.get(
   '/yandex/callback',
   passport.authenticate('yandex', { session: false }),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = req.user!;
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
     } catch (error) {
@@ -113,9 +113,9 @@ router.get('/vk', passport.authenticate('vkontakte', { scope: ['email'] }));
 router.get(
   '/vk/callback',
   passport.authenticate('vkontakte', { session: false }),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (req as any).user;
+      const user = req.user!;
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
     } catch (error) {

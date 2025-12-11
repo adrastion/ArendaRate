@@ -1,9 +1,20 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { query, body, validationResult } from 'express-validator';
-import { optionalAuth, AuthRequest, authenticate } from '../middleware/auth';
+import { optionalAuth, authenticate } from '../middleware/auth';
 import { addressService } from '../services/addressService';
 import { nominatimService } from '../services/nominatimService';
 import { prisma } from '../lib/prisma';
+import { Prisma } from '@prisma/client';
+
+type AddressWithRelations = Prisma.AddressGetPayload<{
+  include: {
+    apartments: {
+      include: {
+        reviews: true;
+      };
+    };
+  };
+}>;
 
 const router = express.Router();
 
@@ -15,7 +26,7 @@ router.get(
     query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Invalid limit'),
   ],
   optionalAuth,
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -29,7 +40,7 @@ router.get(
       console.log('Searching addresses for query:', searchQuery, 'limit:', limit);
 
       // Поиск адресов в базе данных
-      const dbAddresses = await prisma.address.findMany({
+      const dbAddresses = (await prisma.address.findMany({
         where: {
           OR: [
             { city: { contains: searchQuery, mode: 'insensitive' } },
@@ -52,7 +63,7 @@ router.get(
             },
           },
         },
-      });
+      })) as AddressWithRelations[];
 
       console.log(`Found ${dbAddresses.length} addresses in database`);
 
@@ -93,17 +104,17 @@ router.get(
           for (const nominatimAddress of nominatimResults) {
             if (allResults.length >= limit) break;
             
-            const key = `${nominatimAddress.city}|${nominatimAddress.street}|${nominatimAddress.house}`.toLowerCase();
+          const key = `${nominatimAddress.city}|${nominatimAddress.street}|${nominatimAddress.house}`.toLowerCase();
             if (existingKeys.has(key)) continue;
 
             // Проверяем, есть ли этот адрес в БД (но не нашли через поиск)
-            const existingAddress = await prisma.address.findUnique({
+          const existingAddress = (await prisma.address.findUnique({
               where: {
                 country_city_street_building: {
                   country: nominatimAddress.country,
-                  city: nominatimAddress.city!,
+                city: nominatimAddress.city || '',
                   street: nominatimAddress.street || '',
-                  building: nominatimAddress.house,
+                building: nominatimAddress.house ?? '',
                 },
               },
               include: {
@@ -119,7 +130,7 @@ router.get(
                   },
                 },
               },
-            });
+          })) as AddressWithRelations | null;
 
             if (existingAddress) {
               // Адрес есть в БД, используем данные из БД
@@ -149,7 +160,7 @@ router.get(
                 country: nominatimAddress.country,
                 city: nominatimAddress.city || '',
                 street: nominatimAddress.street || '',
-                building: nominatimAddress.house,
+                building: nominatimAddress.house ?? '',
                 latitude: parseFloat(nominatimAddress.geo_lat),
                 longitude: parseFloat(nominatimAddress.geo_lon),
                 apartmentsCount: 0,
@@ -195,7 +206,7 @@ router.post(
     body('latitude').optional().isFloat().withMessage('Invalid latitude'),
     body('longitude').optional().isFloat().withMessage('Invalid longitude'),
   ],
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -228,7 +239,7 @@ router.post(
     body('addressId').isUUID().withMessage('Invalid address ID'),
     body('apartmentNumber').trim().notEmpty().withMessage('Apartment number is required'),
   ],
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -260,17 +271,17 @@ router.post(
 );
 
 // Получение адресов для карты (с агрегированными данными)
-router.get('/map', optionalAuth, async (req: AuthRequest, res, next) => {
+router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { bounds, zoom } = req.query;
 
-    let addresses;
+    let addresses: AddressWithRelations[];
 
     if (bounds && typeof bounds === 'string') {
       // Фильтрация по границам карты
       const [minLat, minLng, maxLat, maxLng] = bounds.split(',').map(parseFloat);
 
-      addresses = await prisma.address.findMany({
+      addresses = (await prisma.address.findMany({
         where: {
           latitude: { gte: minLat, lte: maxLat },
           longitude: { gte: minLng, lte: maxLng },
@@ -289,10 +300,10 @@ router.get('/map', optionalAuth, async (req: AuthRequest, res, next) => {
             },
           },
         },
-      });
+      })) as AddressWithRelations[];
     } else {
       // Все адреса (для начальной загрузки)
-      addresses = await prisma.address.findMany({
+      addresses = (await prisma.address.findMany({
         include: {
           apartments: {
             include: {
@@ -307,7 +318,7 @@ router.get('/map', optionalAuth, async (req: AuthRequest, res, next) => {
             },
           },
         },
-      });
+      })) as AddressWithRelations[];
     }
 
     const markers = addresses
@@ -354,7 +365,7 @@ router.get('/map', optionalAuth, async (req: AuthRequest, res, next) => {
 });
 
 // Получение конкретного адреса
-router.get('/:id', optionalAuth, async (req: AuthRequest, res, next) => {
+router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const address = await prisma.address.findUnique({
       where: { id: req.params.id },

@@ -1,7 +1,7 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 import { ReviewStatus } from '@prisma/client';
-import { authenticate, AuthRequest, requireRole } from '../middleware/auth';
+import { authenticate, requireRole } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
 
@@ -12,7 +12,7 @@ router.use(authenticate);
 router.use(requireRole('MODERATOR', 'ADMIN'));
 
 // Получение списка отзывов на модерацию
-router.get('/pending', async (req: AuthRequest, res, next) => {
+router.get('/pending', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -60,7 +60,7 @@ router.get('/pending', async (req: AuthRequest, res, next) => {
 // Одобрение отзыва
 router.post(
   '/:id/approve',
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const review = await prisma.review.findUnique({
         where: { id: req.params.id },
@@ -107,7 +107,7 @@ router.post(
       .isLength({ min: 1 })
       .withMessage('Rejection reason is required'),
   ],
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -152,7 +152,7 @@ router.post(
 );
 
 // Управление пользователями (для админов)
-router.get('/users', requireRole('ADMIN'), async (req: AuthRequest, res, next) => {
+router.get('/users', requireRole('ADMIN'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -197,7 +197,7 @@ router.get('/users', requireRole('ADMIN'), async (req: AuthRequest, res, next) =
 });
 
 // Удаление отзыва (любого статуса)
-router.delete('/:id', async (req: AuthRequest, res, next) => {
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const review = await prisma.review.findUnique({
       where: { id: req.params.id },
@@ -239,7 +239,7 @@ router.delete('/:id', async (req: AuthRequest, res, next) => {
 router.post(
   '/users/:id/block',
   requireRole('ADMIN'),
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       // В данном случае блокировку можно реализовать через изменение роли
       // или добавление поля isBlocked в модель User

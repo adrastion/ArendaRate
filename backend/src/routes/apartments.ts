@@ -1,12 +1,12 @@
-import express from 'express';
-import { optionalAuth, AuthRequest } from '../middleware/auth';
+import express, { Request, Response, NextFunction } from 'express';
+import { optionalAuth } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
 
 const router = express.Router();
 
 // Получение квартиры с отзывами
-router.get('/:id', optionalAuth, async (req: AuthRequest, res, next) => {
+router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const apartment = await prisma.apartment.findUnique({
       where: { id: req.params.id },

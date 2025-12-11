@@ -1,9 +1,9 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
 
@@ -53,7 +53,7 @@ router.post(
   '/photos',
   authenticate,
   upload.array('photos', 5), // Максимум 5 фотографий
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const files = req.files as Express.Multer.File[];
 
@@ -87,7 +87,7 @@ router.post(
     express.json(),
     express.urlencoded({ extended: true }),
   ],
-  async (req: AuthRequest, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { reviewId, photoUrls } = req.body;
 
