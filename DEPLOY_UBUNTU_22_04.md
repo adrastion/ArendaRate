@@ -1,4 +1,4 @@
-# Запуск ArendRate на облачном сервере Ubuntu 22.04 (без создания отдельного пользователя)
+# Запуск ArendRate на облачном сервере Ubuntu 22.04 с pm2 (без создания отдельного пользователя)
 
 Инструкция рассчитана на работу под текущим пользователем сервера (например, `ubuntu`), без заведения отдельного системного юзера. Все команды выполняются на чистом сервере Ubuntu 22.04.
 
@@ -86,75 +86,45 @@ cd ~/ArendRate
 npm run build
 ```
 
-## 9. Запуск в production вручную (без менеджера процессов)
-В двух tmux/screen вкладках:
+## 9. Установка pm2 (процесс-менеджер)
 ```bash
-# вкладка 1
+sudo npm install -g pm2
+pm2 -v
+```
+
+## 10. Запуск приложений через pm2
+```bash
+# Backend
 cd ~/ArendRate/backend
-NODE_ENV=production npm run start
+NODE_ENV=production pm2 start dist/index.js --name arendrate-backend -- \
+  --port 3001
 
-# вкладка 2
+# Frontend
 cd ~/ArendRate/frontend
-NODE_ENV=production npm run start
+NODE_ENV=production pm2 start npm --name arendrate-frontend -- run start -- --port 3000
 ```
-Бэкенд: порт 3001, фронтенд: порт 3000.
-
-## 10. Автозапуск через systemd (тот же пользователь)
-Замените `<user>` на вашего текущего пользователя и пути на фактические.
-
-`/etc/systemd/system/arendrate-backend.service`:
-```
-[Unit]
-Description=ArendRate Backend
-After=network.target postgresql.service redis-server.service
-
-[Service]
-Type=simple
-User=<user>
-WorkingDirectory=/home/<user>/ArendRate/backend
-EnvironmentFile=/home/<user>/ArendRate/backend/.env
-ExecStart=/usr/bin/node /home/<user>/ArendRate/backend/dist/index.js
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-`/etc/systemd/system/arendrate-frontend.service`:
-```
-[Unit]
-Description=ArendRate Frontend
-After=network.target arendrate-backend.service
-
-[Service]
-Type=simple
-User=<user>
-WorkingDirectory=/home/<user>/ArendRate/frontend
-Environment=NODE_ENV=production
-EnvironmentFile=/home/<user>/ArendRate/frontend/.env.local
-ExecStart=/usr/bin/npm run start
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Примените и запустите:
+Проверьте список процессов:
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now arendrate-backend.service
-sudo systemctl enable --now arendrate-frontend.service
-```
-Проверка статуса:
-```bash
-sudo systemctl status arendrate-backend.service
-sudo systemctl status arendrate-frontend.service
+pm2 ls
 ```
 
-## 11. (Опционально) Nginx как обратный прокси
+## 11. Автозапуск pm2 при перезагрузке
+```bash
+pm2 save
+pm2 startup systemd -u $USER --hp $HOME
+```
+Команда выведет `sudo ...` строку — выполните её, затем снова `pm2 save`.
+
+## 12. Логи и управление
+- Логи бэкенда: `pm2 logs arendrate-backend`
+- Логи фронтенда: `pm2 logs arendrate-frontend`
+- Перезапуск: `pm2 restart arendrate-backend` / `pm2 restart arendrate-frontend`
+- Остановка: `pm2 stop <name>` или `pm2 delete <name>`
+
+## 13. (Опционально) Nginx как обратный прокси
 Если нужен доступ по 80/443, установите nginx и проксируйте на 3000/3001, настроив TLS (Let’s Encrypt). Пример серверного блока не приводится для краткости, но стандартный reverse-proxy подойдёт.
 
-## 12. Обновление версии
+## 14. Обновление версии
 ```bash
 cd ~/ArendRate
 git pull
@@ -164,7 +134,7 @@ cd backend && npx prisma migrate deploy && cd ..
 sudo systemctl restart arendrate-backend.service arendrate-frontend.service
 ```
 
-## 13. Быстрая проверка
+## 15. Быстрая проверка
 - http://<сервер>:3000 — фронтенд
 - http://<сервер>:3001/health (если добавите healthcheck) — бэкенд
 - `redis-cli PING` → PONG
