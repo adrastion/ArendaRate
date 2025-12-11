@@ -165,7 +165,11 @@ export function MapPage() {
           street: response.address.street,
           building: response.address.building,
         },
-        apartments: response.apartments,
+        apartments: response.apartments.map((apt) => ({
+          id: apt.id,
+          number: apt.number,
+          reviewsCount: apt.reviewsCount ?? 0,
+        })),
         totalReviewsCount,
       })
       
