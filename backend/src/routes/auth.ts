@@ -98,9 +98,12 @@ router.get(
   passport.authenticate('yandex', { session: false }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = req.user!;
+      const token = (req.user as any)?.token;
+      if (!token) {
+        throw createError('OAuth callback did not return token', 500);
+      }
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
+      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     } catch (error) {
       next(error);
     }
@@ -115,9 +118,12 @@ router.get(
   passport.authenticate('vkontakte', { session: false }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = req.user!;
+      const token = (req.user as any)?.token;
+      if (!token) {
+        throw createError('OAuth callback did not return token', 500);
+      }
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
+      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     } catch (error) {
       next(error);
     }

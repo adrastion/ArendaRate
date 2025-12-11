@@ -111,9 +111,10 @@ export const authService = {
     avatar: string | null
   ) {
     const fieldName = provider === 'yandex' ? 'yandexId' : 'vkId';
-    const providerWhere: Prisma.UserWhereUniqueInput = {
-      [fieldName]: providerId,
-    };
+    const providerWhere: Prisma.UserWhereUniqueInput =
+      fieldName === 'yandexId'
+        ? { yandexId: providerId }
+        : { vkId: providerId };
 
     // Поиск существующего пользователя
     let user = await prisma.user.findUnique({

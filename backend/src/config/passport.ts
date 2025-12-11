@@ -1,8 +1,6 @@
 import passport from 'passport';
-import { Profile as PassportProfile } from 'passport';
 import { Strategy as YandexStrategy } from 'passport-yandex';
-import { Strategy as VKontakteStrategy, Profile as VKProfile } from 'passport-vkontakte';
-import { VerifyCallback } from 'passport-oauth2';
+import { Strategy as VKontakteStrategy } from 'passport-vkontakte';
 import { authService } from '../services/authService';
 
 // Яндекс OAuth
@@ -16,8 +14,8 @@ passport.use(
     async (
       accessToken: string,
       refreshToken: string,
-      profile: PassportProfile,
-      done: VerifyCallback
+      profile: any,
+      done: (error: any, user?: any) => void
     ) => {
       try {
         const { user, token } = await authService.findOrCreateOAuthUser(
@@ -53,8 +51,8 @@ passport.use(
       accessToken: string,
       refreshToken: string,
       params: VkParams,
-      profile: VKProfile,
-      done: VerifyCallback
+      profile: any,
+      done: (error: any, user?: any) => void
     ) => {
       try {
         const email = params.email || null;

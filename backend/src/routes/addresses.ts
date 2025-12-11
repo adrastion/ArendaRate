@@ -16,6 +16,20 @@ type AddressWithRelations = Prisma.AddressGetPayload<{
   };
 }>;
 
+type AddressResult = {
+  id: string;
+  country: string;
+  city: string;
+  street: string;
+  building: string;
+  latitude: number | null;
+  longitude: number | null;
+  apartmentsCount: number;
+  reviewsCount: number;
+  fromDatabase: boolean;
+  formattedAddress?: string;
+};
+
 const router = express.Router();
 
 // Поиск адресов
@@ -68,7 +82,7 @@ router.get(
       console.log(`Found ${dbAddresses.length} addresses in database`);
 
       // Преобразуем адреса из БД
-      const dbResults = dbAddresses.map((address) => {
+      const dbResults: AddressResult[] = dbAddresses.map((address) => {
         const apartmentsCount = address.apartments.length;
         const reviewsCount = address.apartments.reduce(
           (sum, apt) => sum + apt.reviews.length,
@@ -90,7 +104,7 @@ router.get(
       });
 
       // Если нашли меньше чем лимит, дополняем результатами из Nominatim (OpenStreetMap)
-      let allResults = [...dbResults];
+      let allResults: AddressResult[] = [...dbResults];
       
       if (dbResults.length < limit) {
         try {
