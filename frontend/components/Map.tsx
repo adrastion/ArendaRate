@@ -67,6 +67,53 @@ function ZoomControlPosition() {
   return null
 }
 
+// Компонент для удаления стандартной атрибуции и скрытия флагов
+function AttributionCleaner() {
+  const map = useMap()
+
+  useEffect(() => {
+    // Удаляем стандартную атрибуцию Leaflet
+    const attributionControl = map.attributionControl
+    if (attributionControl) {
+      map.removeControl(attributionControl)
+    }
+
+    // Скрываем все изображения и флаги в атрибуции через короткий интервал
+    const hideFlags = () => {
+      const attributionEls = document.querySelectorAll('.leaflet-control-attribution')
+      attributionEls.forEach((el) => {
+        // Скрываем все изображения
+        const imgs = el.querySelectorAll('img')
+        imgs.forEach((img) => {
+          img.style.display = 'none'
+          img.style.visibility = 'hidden'
+        })
+        
+        // Удаляем эмодзи флагов
+        const text = el.textContent || ''
+        if (text.includes('🇺🇦') || text.includes('UA')) {
+          el.textContent = el.textContent?.replace(/🇺🇦/g, '').replace(/UA/g, '') || ''
+        }
+      })
+    }
+
+    // Проверяем сразу и периодически
+    hideFlags()
+    const interval = setInterval(hideFlags, 100)
+    
+    // Также проверяем при изменениях DOM
+    const observer = new MutationObserver(hideFlags)
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    return () => {
+      clearInterval(interval)
+      observer.disconnect()
+    }
+  }, [map])
+
+  return null
+}
+
 export function Map({ markers, onMarkerClick }: MapProps) {
   const mapRef = useRef<L.Map | null>(null)
   const isInitialFit = useRef<boolean>(false)
@@ -160,11 +207,12 @@ export function Map({ markers, onMarkerClick }: MapProps) {
         zoom={10}
         style={{ height: '100%', width: '100%', zIndex: 1 }}
         zoomControl={true}
+        attributionControl={false}
       >
         <LayersControl position="bottomright" collapsed={true}>
           <LayersControl.BaseLayer checked name="Стандартная карта">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </LayersControl.BaseLayer>
@@ -176,19 +224,19 @@ export function Map({ markers, onMarkerClick }: MapProps) {
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Светлая карта">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Темная карта">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Топографическая карта">
             <TileLayer
-              attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+              attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
               url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
             />
           </LayersControl.BaseLayer>
@@ -196,6 +244,14 @@ export function Map({ markers, onMarkerClick }: MapProps) {
         
         <MapBounds markers={markers} isInitialFit={isInitialFit} />
         <ZoomControlPosition />
+        <AttributionCleaner />
+        
+        {/* Кастомная атрибуция без флагов */}
+        <div className="leaflet-bottom leaflet-right" style={{ zIndex: 1000, pointerEvents: 'none' }}>
+          <div className="leaflet-control-attribution leaflet-control" style={{ background: 'rgba(255, 255, 255, 0.8)', padding: '2px 5px', fontSize: '11px', pointerEvents: 'auto' }}>
+            © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" style={{ color: '#0078a8', textDecoration: 'none' }}>OpenStreetMap</a>
+          </div>
+        </div>
 
         {markersWithIcons.map((marker) => (
           <Marker

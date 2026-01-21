@@ -217,10 +217,10 @@ export function MapPage() {
 
         {isLoadingAddress && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-            <div className="pointer-events-auto bg-white rounded-lg shadow-lg p-4">
+            <div className="pointer-events-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
-                <span className="text-gray-700">Загрузка адреса...</span>
+                <span className="text-gray-700 dark:text-gray-300">Загрузка адреса...</span>
               </div>
             </div>
           </div>

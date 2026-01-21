@@ -8,12 +8,10 @@
   --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 24, 39;
+  --background-end-rgb: 17, 24, 39;
 }
 
 body {
@@ -26,7 +24,7 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-/* Исправление для полей ввода - всегда темный текст на светлом фоне */
+/* Исправление для полей ввода */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -39,9 +37,26 @@ select {
   background-color: #ffffff !important;
 }
 
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="date"],
+.dark input[type="file"],
+.dark input[type="number"],
+.dark textarea,
+.dark select {
+  color: #f9fafb !important; /* gray-50 */
+  background-color: #374151 !important; /* gray-700 */
+}
+
 input::placeholder,
 textarea::placeholder {
   color: #6b7280 !important; /* gray-500 */
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca3af !important; /* gray-400 */
 }
 
 /* Исправление для выпадающих списков и результатов поиска */
@@ -87,6 +102,22 @@ button {
   margin-right: 10px !important;
 }
 
+/* Скрытие всех флагов в атрибуции карты */
+.leaflet-control-attribution img,
+.leaflet-control-attribution [class*="flag"],
+.leaflet-control-attribution [style*="flag"],
+.leaflet-control-attribution [style*="🇺🇦"],
+.leaflet-control-attribution a[href*="ukraine"],
+.leaflet-control-attribution a[href*="ua"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Убираем изображения из атрибуции */
+.leaflet-control-attribution img {
+  display: none !important;
+}
+
 .leaflet-control-layers-toggle {
   background-color: white !important;
   width: 36px !important;
@@ -117,9 +148,21 @@ button {
   background-color: #ffffff !important;
 }
 
+.dark .modal-content,
+.dark .card,
+.dark .dropdown-menu {
+  color: #f9fafb !important;
+  background-color: #1f2937 !important;
+}
+
 /* Исправление для всех элементов с белым фоном */
 .bg-white {
   color: #111827 !important;
+}
+
+.dark .bg-white {
+  color: #f9fafb !important;
+  background-color: #1f2937 !important;
 }
 
 .bg-white * {
@@ -131,6 +174,13 @@ button {
 .bg-white .font-semibold,
 .bg-white .font-bold {
   color: #111827 !important;
+}
+
+.dark .bg-white .text-gray-900,
+.dark .bg-white .font-medium,
+.dark .bg-white .font-semibold,
+.dark .bg-white .font-bold {
+  color: #f9fafb !important;
 }
 
 /* Убедиться, что элементы поверх карты могут получать клики */
