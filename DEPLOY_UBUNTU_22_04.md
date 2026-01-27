@@ -11,10 +11,55 @@ sudo systemctl enable --now postgresql redis-server
 ```
 
 ## 2. Установка Node.js 18 LTS (NodeSource)
+
+**Важно:** Если на сервере уже установлена старая версия Node.js, сначала удалите её.
+
+### 2.1. Удаление старой версии Node.js (если установлена)
 ```bash
+# Проверьте текущую версию
+node -v
+
+# Если версия меньше 18.x, удалите старую версию
+sudo apt remove -y nodejs npm
+sudo apt purge -y nodejs npm
+sudo apt autoremove -y
+
+# Удалите репозитории NodeSource (если были добавлены ранее)
+sudo rm -f /etc/apt/sources.list.d/nodesource.list
+sudo rm -f /etc/apt/sources.list.d/nodesource.list.save
+```
+
+### 2.2. Установка Node.js 18 LTS
+```bash
+# Добавление репозитория NodeSource
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+
+# Обновление списка пакетов
+sudo apt update
+
+# Установка Node.js 18
 sudo apt install -y nodejs
-node -v  # убедитесь, что v18.x
+
+# Проверка версии (должно быть v18.x.x)
+node -v
+npm -v
+```
+
+**Если после установки всё ещё показывается старая версия:**
+```bash
+# Проверьте, какой node используется
+which node
+# Должно быть: /usr/bin/node
+
+# Если показывает другой путь, проверьте PATH
+echo $PATH
+
+# Перезагрузите сессию или выполните:
+hash -r
+source ~/.bashrc
+
+# Проверьте версию снова
+node -v
 ```
 
 ## 3. Клонирование проекта (или копирование уже имеющейся папки)
@@ -33,7 +78,7 @@ sudo -u postgres psql
 Внутри psql создайте БД и пользователя (замените пароли на свои):
 ```sql
 CREATE DATABASE arendrate;
-CREATE USER arendrate_user WITH PASSWORD 'strong_password';
+CREATE USER arendrate_user WITH PASSWORD '0408';
 GRANT ALL PRIVILEGES ON DATABASE arendrate TO arendrate_user;
 \q
 ```
@@ -43,25 +88,25 @@ GRANT ALL PRIVILEGES ON DATABASE arendrate TO arendrate_user;
 ```env
 PORT=3001
 NODE_ENV=production
-DATABASE_URL="postgresql://arendrate_user:strong_password@localhost:5432/arendrate?schema=public"
+DATABASE_URL="postgresql://arendrate_user:0408@localhost:5432/arendrate?schema=public"
 JWT_SECRET=change_me_in_prod
 JWT_EXPIRES_IN=7d
 YANDEX_CLIENT_ID=
 YANDEX_CLIENT_SECRET=
-YANDEX_CALLBACK_URL=https://<your-domain>/api/auth/yandex/callback
+YANDEX_CALLBACK_URL=https://arendrate.ru/api/auth/yandex/callback
 VK_CLIENT_ID=
 VK_CLIENT_SECRET=
-VK_CALLBACK_URL=https://<your-domain>/api/auth/vk/callback
+VK_CALLBACK_URL=https://arendrate.ru/api/auth/vk/callback
 REDIS_URL=redis://localhost:6379
 UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=5242880
 ALLOWED_FILE_TYPES=jpg,jpeg,png,webp
-FRONTEND_URL=https://<your-domain>
+FRONTEND_URL=https://arendrate.ru
 ```
 
 Создайте `frontend/.env.local`:
 ```env
-NEXT_PUBLIC_API_URL=https://<your-domain>
+NEXT_PUBLIC_API_URL=https://arendrate.ru
 PORT=3000
 ```
 
@@ -81,9 +126,33 @@ npm run db:seed
 ```
 
 ## 8. Сборка фронтенда и бэкенда
+
+**Важно:** Перед запуском через PM2 необходимо собрать проект.
+
 ```bash
 cd ~/ArendRate
+
+# Установка зависимостей (если ещё не установлены)
+npm install
+cd backend && npm install && cd ..
+cd frontend && npm install && cd ..
+
+# Генерация Prisma Client (обязательно перед сборкой)
+cd ~/ArendRate/backend
+npx prisma generate
+
+# Сборка backend (TypeScript → JavaScript)
 npm run build
+
+# Проверка, что файл dist/index.js создан
+ls -la dist/index.js
+
+# Сборка frontend
+cd ~/ArendRate/frontend
+npm run build
+
+# Вернуться в корень
+cd ~/ArendRate
 ```
 
 ## 9. Установка pm2 (процесс-менеджер)
@@ -93,19 +162,35 @@ pm2 -v
 ```
 
 ## 10. Запуск приложений через pm2
+
+**Перед запуском убедитесь, что:**
+- ✅ Проект собран (выполнен шаг 8)
+- ✅ Файл `backend/dist/index.js` существует
+- ✅ Prisma Client сгенерирован
+- ✅ Переменные окружения настроены
+
 ```bash
 # Backend
-cd ~/ArendRate/backend
-NODE_ENV=production pm2 start dist/index.js --name arendrate-backend -- \
-  --port 3001
+cd ~/ArendRate/backend 
+
+# Проверка наличия собранного файла
+if [ ! -f "dist/index.js" ]; then
+  echo "Ошибка: файл dist/index.js не найден. Выполните: npm run build"
+  exit 1
+fi
+
+# Запуск через PM2
+NODE_ENV=production pm2 start dist/index.js --name arendrate-backend
 
 # Frontend
 cd ~/ArendRate/frontend
-NODE_ENV=production pm2 start npm --name arendrate-frontend -- run start -- --port 3000
-```
-Проверьте список процессов:
-```bash
+NODE_ENV=production pm2 start npm --name arendrate-frontend -- run start
+
+# Проверка списка процессов
 pm2 ls
+
+# Просмотр логов (для проверки работы)
+pm2 logs arendrate-backend --lines 50
 ```
 
 ## 11. Автозапуск pm2 при перезагрузке
@@ -135,10 +220,31 @@ sudo systemctl restart arendrate-backend.service arendrate-frontend.service
 ```
 
 ## 15. Быстрая проверка
-- http://<сервер>:3000 — фронтенд
-- http://<сервер>:3001/health (если добавите healthcheck) — бэкенд
+
+### Локальная проверка (на сервере)
+```bash
+# Backend health check
+curl http://localhost:3001/api/health
+
+# Frontend
+curl http://localhost:3000
+
+# Проверка процессов PM2
+pm2 ls
+
+# Проверка портов
+netstat -tlnp | grep -E '3000|3001|80|443'
+```
+
+### Проверка через домен
+- http://arendrate.ru — фронтенд
+- http://arendrate.ru/api/health — бэкенд
 - `redis-cli PING` → PONG
 - `psql -d arendrate -c '\dt'` — таблицы созданы
+
+### Диагностика проблем
+
+Если что-то не работает, см. файл `DEPLOY_FIX.md` для подробных инструкций по решению проблем.
 
 ## Примечания
 - Загружаемые файлы пишутся в `backend/uploads`. Убедитесь, что папка существует и у текущего пользователя есть права на запись.

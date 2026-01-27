@@ -30,7 +30,9 @@ export default function LoginPage() {
 
   const handleOAuth = (provider: 'yandex' | 'vk') => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    window.location.href = `${apiUrl}/api/auth/${provider}`
+    // Если apiUrl уже содержит /api, не добавляем его снова
+    const baseUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`
+    window.location.href = `${baseUrl}/auth/${provider}`
   }
 
   return (
