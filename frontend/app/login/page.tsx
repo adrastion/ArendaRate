@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Script from 'next/script'
 import { useAuthStore } from '@/store/authStore'
 
 export default function LoginPage() {
@@ -109,7 +110,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             <button
               type="button"
               onClick={() => handleOAuth('yandex')}
@@ -117,13 +118,54 @@ export default function LoginPage() {
             >
               Яндекс
             </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth('vk')}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-            >
-              VK
-            </button>
+
+            <div className="space-y-2">
+              <div id="vkid-one-tap-container" />
+
+              <Script
+                src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"
+                strategy="afterInteractive"
+              />
+              <Script id="vkid-init" strategy="afterInteractive">{`
+                if ('VKIDSDK' in window) {
+                  const VKID = window.VKIDSDK;
+
+                  VKID.Config.init({
+                    app: 54435093,
+                    redirectUrl: 'https://arendarate.ru/api/auth/vk/callback',
+                    responseMode: VKID.ConfigResponseMode.Callback,
+                    source: VKID.ConfigSource.LOWCODE,
+                    scope: '',
+                  });
+
+                  const oneTap = new VKID.OneTap();
+
+                  function vkidOnSuccess(data) {
+                    console.log('VKID success', data);
+                  }
+                
+                  function vkidOnError(error) {
+                    console.error('VKID error', error);
+                  }
+
+                  oneTap
+                    .render({
+                      container: document.getElementById('vkid-one-tap-container'),
+                      fastAuthEnabled: false,
+                      showAlternativeLogin: true,
+                    })
+                    .on(VKID.WidgetEvents.ERROR, vkidOnError)
+                    .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                      const code = payload.code;
+                      const deviceId = payload.device_id;
+
+                      VKID.Auth.exchangeCode(code, deviceId)
+                        .then(vkidOnSuccess)
+                        .catch(vkidOnError);
+                    });
+                }
+              `}</Script>
+            </div>
           </div>
 
           <div className="text-center">
