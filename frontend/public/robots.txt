@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /profile
+Disallow: /moderation
+
+Sitemap: https://arendarate.ru/sitemap.xml
+Host: arendarate.ru
+
