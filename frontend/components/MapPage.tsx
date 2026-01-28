@@ -197,14 +197,21 @@ export function MapPage() {
     <div className="h-screen flex flex-col">
       <Header />
       <div className="flex-1 relative">
-        <div className="absolute top-4 left-4 z-10 w-96 max-w-[calc(100%-2rem)] pointer-events-none">
-          <div className="pointer-events-auto">
-            <AddressSearch onSelect={handleAddressSelect} />
+        <div className="absolute top-4 left-4 right-4 md:right-auto z-10 w-96 md:max-w-[calc(100%-2rem)] max-w-none pointer-events-none">
+          <div className="pointer-events-auto flex flex-col md:flex-row gap-2 md:gap-0">
+            <div className="flex-1 md:flex-none">
+              <AddressSearch onSelect={handleAddressSelect} />
+            </div>
+            {user && (
+              <div className="md:hidden flex justify-end">
+                <AddReviewButton onClick={() => setShowAddReview(true)} />
+              </div>
+            )}
           </div>
         </div>
 
         {user && (
-          <div className="absolute top-4 right-4 z-10 pointer-events-none">
+          <div className="hidden md:block absolute top-4 right-4 z-10 pointer-events-none">
             <div className="pointer-events-auto">
               <AddReviewButton onClick={() => setShowAddReview(true)} />
             </div>
