@@ -1,8 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import { Header } from '@/components/Header'
 
 export default function AboutPage() {
+  const [isEmailCopied, setIsEmailCopied] = useState(false)
+
+  const handleCopyEmail = () => {
+    const email = 'ArendaRate@yandex.ru'
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(email).then(() => {
+        setIsEmailCopied(true)
+        setTimeout(() => setIsEmailCopied(false), 2000)
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -94,38 +107,85 @@ export default function AboutPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Контакты и поддержка</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме — свяжитесь с нами:
+                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме — свяжитесь с нами удобным способом:
               </p>
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
-                <li>
-                  Почта (поддержка и предложения):{' '}
-                  <a className="text-primary-600 hover:text-primary-500" href="mailto:ArendaRate@yandex.ru">
-                    ArendaRate@yandex.ru
-                  </a>
-                </li>
-                <li>
-                  Новостной Telegram-канал:{' '}
-                  <a
-                    className="text-primary-600 hover:text-primary-500"
-                    href="https://t.me/ArendaRate"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    t.me/ArendaRate
-                  </a>
-                </li>
-                <li>
-                  Техподдержка в Telegram:{' '}
-                  <a
-                    className="text-primary-600 hover:text-primary-500"
-                    href="https://t.me/ArendaRateTS"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    t.me/ArendaRateTS
-                  </a>
-                </li>
-              </ul>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  className="group flex w-full items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/40 p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors text-left"
+                  onClick={handleCopyEmail}
+                >
+                  <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16v12H4V6z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m4 7 8 6 8-6" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">Почта поддержки и предложений</div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">
+                      ArendaRate@yandex.ru
+                    </div>
+                    <div className="mt-2 text-sm text-primary-600 dark:text-primary-400 group-hover:underline">
+                      {isEmailCopied ? 'Почта скопирована' : 'Скопировать почту →'}
+                    </div>
+                  </div>
+                </button>
+
+                <a
+                  className="group flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/40 p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                  href="https://t.me/ArendaRateTS"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z"
+                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13l8-6-3 10-2-3-3-1Z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">Техподдержка в Telegram</div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">t.me/ArendaRateTS</div>
+                    <div className="mt-2 text-sm text-sky-700 dark:text-sky-300 group-hover:underline">
+                      Открыть чат →
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              <div className="mt-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z"
+                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13l8-6-3 10-2-3-3-1Z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">Новостной Telegram-канал</div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">t.me/ArendaRate</div>
+                    <a
+                      className="mt-2 inline-flex text-sm text-sky-700 dark:text-sky-300 hover:underline"
+                      href="https://t.me/ArendaRate"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Перейти в канал →
+                    </a>
+                  </div>
+                </div>
+              </div>
             </section>
 
             <section className="border-t dark:border-gray-700 pt-8">
