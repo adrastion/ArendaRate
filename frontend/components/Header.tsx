@@ -38,13 +38,18 @@ export function Header() {
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 z-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold text-primary-600 dark:text-primary-400 flex items-center">
-            <span className="hidden sm:inline">ArendaRate <span className="text-sm font-normal text-gray-600 dark:text-gray-400">(Отзывы о жилье)</span></span>
-            <span className="sm:hidden flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
               ArendaRate
-              <span className="text-sm font-normal text-gray-600 dark:text-gray-400">(Отзывы о жилье)</span>
-            </span>
-          </Link>
+            </Link>
+            <Link
+              href="/reviews"
+              className="text-sm font-normal text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
+              aria-label="Отзывы о жилье"
+            >
+              (Отзывы о жилье)
+            </Link>
+          </div>
 
           {/* Десктопное меню */}
           <nav className="hidden md:flex items-center space-x-4">
@@ -54,12 +59,6 @@ export function Header() {
               className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
             >
               О нас
-            </Link>
-            <Link
-              href="/constitution"
-              className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Конституция
             </Link>
             <a
               href="https://yoomoney.ru/to/4100119446457843"
@@ -151,16 +150,6 @@ export function Header() {
                     role="menuitem"
                   >
                     О нас
-                  </Link>
-
-                  {/* Конституция */}
-                  <Link
-                    href="/constitution"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    role="menuitem"
-                  >
-                    Конституция
                   </Link>
 
                   {/* Сказать спасибо */}

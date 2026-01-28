@@ -21,87 +21,142 @@ export default function AboutPage() {
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">О проекте ArendaRate</h1>
-          
           <div className="prose prose-lg max-w-none dark:prose-invert">
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Наша миссия</h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                ArendaRate — это платформа, созданная для повышения прозрачности рынка аренды жилья. 
-                Мы предоставляем будущим арендаторам доступ к проверенным отзывам и оценкам предыдущих жильцов, 
-                помогая принимать обоснованные решения при выборе жилья.
-              </p>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Наша цель — создать честную и открытую экосистему, где каждый может поделиться своим опытом 
-                и получить достоверную информацию о жилье перед заключением договора аренды.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Как это работает</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Для арендаторов</h3>
-                  <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
-                    <li>Изучайте отзывы о квартирах на интерактивной карте</li>
-                    <li>Оценивайте жилье по 6 критериям: техническое состояние, чистота, безопасность, комфорт, честность арендодателя и соотношение цены и качества</li>
-                    <li>Просматривайте фотографии и детальные комментарии от предыдущих жильцов</li>
-                    <li>Принимайте обоснованные решения на основе реального опыта других людей</li>
-                  </ul>
+            <section className="mb-10">
+              <div className="text-center mb-8">
+                <div className="text-4xl md:text-5xl font-extrabold tracking-wide text-gray-900 dark:text-white mb-3">
+                  <span className="text-gray-900 dark:text-white">Arenda</span>
+                  <span className="text-primary-600 dark:text-primary-400">Rate</span>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Для тех, кто снимал жилье</h3>
-                  <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
-                    <li>Делитесь своим опытом проживания в квартире</li>
-                    <li>Оставляйте детальные отзывы с оценками и фотографиями</li>
-                    <li>Помогайте другим людям избежать проблемных вариантов</li>
-                    <li>Создавайте сообщество ответственных арендаторов</li>
-                  </ul>
-                </div>
+                <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                  Устав компании ArendaRate
+                </p>
+                <p className="mt-4 text-sm md:text-base italic text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+                  Девиз компании:{' '}
+                  <span className="font-semibold">
+                    ArendaRate - твой опыт. Чья-то безопасность. Честная аренда начинается здесь.
+                  </span>
+                </p>
               </div>
-            </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Система модерации</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-3 text-center">Преамбула</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Все отзывы проходят проверку модераторами перед публикацией. Это гарантирует:
+                Мы, создатели ArendaRate, осознавая свою ответственность перед каждым человеком, который ищет не просто
+                квартиру, а место, где хочется жить — с комфортом, в безопасности и с доверием, — провозглашаем эту
+                Конституцию основой нашей миссии.
               </p>
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
-                <li>Отсутствие оскорблений, спама и рекламы</li>
-                <li>Защиту личных данных арендодателей и соседей</li>
-                <li>Качество и достоверность информации</li>
-                <li>Соблюдение правил сообщества</li>
-              </ul>
-            </section>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Наша платформа даёт арендаторам возможность честно и свободно делиться своим опытом проживания в съёмном
+                жилье, формируя таким образом открытую и справедливую среду для всех.
+              </p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                С помощью отзывов и объективных оценок в виде звёздочек пользователи могут выразить своё мнение по
+                следующим важнейшим аспектам аренды:
+              </p>
+              <ol className="list-decimal list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4 mb-4">
+                <li>Чистота в квартире и общее состояние жилья.</li>
+                <li>Состояние кухни, ванной комнаты и туалета.</li>
+                <li>Уровень шума в доме и за окном.</li>
+                <li>
+                  Поведение и адекватность соседей (в том числе наличие асоциальных или опасных элементов)
+                </li>
+                <li>
+                  Развитая инфраструктура: наличие поблизости парков, магазинов, школ, детских садов, поликлиник,
+                  торговых центров, спортивных объектов.
+                </li>
+                <li>
+                  Транспортная доступность: близость остановок общественного транспорта, метро и дорожной сети.
+                </li>
+              </ol>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                Мы верим, что каждый человек, прочитав правдивый отзыв, получает право сделать более осознанный и
+                безопасный выбор. Потому что правда — это тот редкий ресурс, который не теряет своей силы, даже если о
+                нём говорят тихо.
+              </p>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Принципы работы</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Прозрачность</h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Вся информация о жилье доступна открыто, без скрытых условий
-                  </p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Безопасность</h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Защита личных данных и конфиденциальность пользователей
-                  </p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Честность</h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Только реальные отзывы от людей, которые действительно проживали в квартирах
-                  </p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Сообщество</h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Взаимопомощь и поддержка между арендаторами
-                  </p>
-                </div>
-              </div>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Раздел I. Основные принципы</h2>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 1. Честность и прозрачность</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                ArendaRate основан на идее открытого диалога и достоверности. Мы предоставляем арендаторам площадку, где
+                личный опыт становится ценным ориентиром для других. Правда о вашем вчерашнем дне помогает кому-то в
+                завтрашнем.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 2. Безопасность - основа достойной жизни</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Для нас безопасность - это не просто функция сервиса, а суть нашей миссии. Мы стремимся создать цифровую
+                экосистему, в которой каждый человек может обезопасить себя от нежелательного жилья, недобросовестных
+                арендодателей и неблагоприятной обстановки. Когда речь идёт о благополучии, нет второстепенных деталей.
+                Чистый подъезд, тихий сосед, освещение рядом с остановкой - всё это и есть безопасность.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 3. Свобода слова с ответственностью</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                Ваше мнение имеет значение - всегда! Мы поддерживаем свободу самовыражения в рамках честности,
+                корректности и уважения. Отзывы должны быть правдивыми и основанными на личном опыте. Без фальсификаций,
+                без клеветы - только добросовестная правда.
+              </p>
+
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Раздел II. Права пользователей</h2>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 4. Право на публикацию</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Каждый зарегистрированный пользователь, проживавший в арендуемом жилье, имеет возможность написать отзыв,
+                выставить оценки и поделиться своими личными наблюдениями. ArendaRate способствует тому, чтобы голос
+                арендатора был услышан - качественно, быстро и корректно.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 5. Право на защиту информации</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                На данном этапе платформа принимает и публикует только отзывы арендаторов. Мы обязуемся проверять отзывы
+                на предмет злоупотреблений и нарушений этических норм, сохраняя честность в каждой публикации. У всех
+                пользователей будет возможность сообщать о подозрительных отзывах для повторной проверки.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 6. Право на доступ к истории</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                Каждый желающий может ознакомиться с ранее оставленными отзывами о конкретном жилье, районе или объекте
+                аренды. Мы создаем карту реального опыта аренды, которая призвана предупреждать, вдохновлять и защищать.
+              </p>
+
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Раздел III. Социальная миссия</h2>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 7. Профилактика через правду</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Если отзыв содержит информацию о потенциальных рисках для жизни, здоровья или эмоционального состояния
+                будущих жильцов (например, агрессивные соседи, дом с многочисленными нарушениями, антисанитария и т. д.),
+                мы обязуемся помечать такие отзывы как «особо важные», чтобы привлечь внимание всех читателей. Такая
+                система сама по себе становится механизмом раннего предупреждения. ArendaRate - это цифровой щит,
+                активируемый словом.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 8. Безопасность - бесплатно</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Функции, связанные с оценкой условий проживания, безопасности и жизненной среды, всегда будут доступны для
+                бесплатного просмотра. Мы считаем, что каждый имеет право знать, что его ждёт за дверью арендованного жилья.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 9. Просвещение и поддержка</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                Мы информируем пользователей о правах арендаторов, о том, как распознать недобросовестную сделку, а также
+                о важных аспектах взаимодействия с собственниками и управляющими компаниями. ArendaRate - это не только
+                приложение, но и инструмент для обучения безопасному проживанию в арендованном жилье.
+              </p>
+
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-3">Заключение</h2>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Эта Конституция - наш моральный и деловой ориентир. Мы создаём не просто информационное пространство, а
+                силу, способную менять человеческие судьбы.
+              </p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Один честный отзыв, одна звезда, поставленная от всего сердца, могут уберечь других от неверных решений.
+              </p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Пожалуйста расскажите правду о своём опыте проживания - и, возможно, вы сохраните чью-то уверенность, время,
+                душевный покой, здоровье или даже жизнь.
+              </p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                Мы - ArendaRate. Мы создаём доверие там, где раньше был только риск.
+              </p>
+              <p className="font-medium text-gray-800 dark:text-gray-200">С уважением, команда ArendaRate.</p>
             </section>
 
             <section className="mb-8">
