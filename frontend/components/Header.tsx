@@ -39,9 +39,9 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="text-xl font-bold text-primary-600 dark:text-primary-400 flex items-center">
-            <span className="hidden sm:inline">ArendRate <span className="text-sm font-normal text-gray-600 dark:text-gray-400">(Отзывы о жилье)</span></span>
+            <span className="hidden sm:inline">ArendaRate <span className="text-sm font-normal text-gray-600 dark:text-gray-400">(Отзывы о жилье)</span></span>
             <span className="sm:hidden flex items-center gap-1">
-              ArendRate
+              ArendaRate
               <span className="text-sm font-normal text-gray-600 dark:text-gray-400">(Отзывы о жилье)</span>
             </span>
           </Link>

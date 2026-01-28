@@ -49,7 +49,7 @@ export default function LoginPage() {
             </svg>
           </button>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Вход в ArendRate
+            Вход в ArendaRate
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

@@ -8,13 +8,13 @@ export default function AboutPage() {
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">О проекте ArendRate</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">О проекте ArendaRate</h1>
           
           <div className="prose prose-lg max-w-none dark:prose-invert">
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Наша миссия</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                ArendRate — это платформа, созданная для повышения прозрачности рынка аренды жилья. 
+                ArendaRate — это платформа, созданная для повышения прозрачности рынка аренды жилья. 
                 Мы предоставляем будущим арендаторам доступ к проверенным отзывам и оценкам предыдущих жильцов, 
                 помогая принимать обоснованные решения при выборе жилья.
               </p>
@@ -93,16 +93,45 @@ export default function AboutPage() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Контакты и поддержка</h2>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме, 
-                пожалуйста, свяжитесь с нами через форму обратной связи или напишите на почту поддержки.
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме — свяжитесь с нами:
               </p>
+              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
+                <li>
+                  Почта (поддержка и предложения):{' '}
+                  <a className="text-primary-600 hover:text-primary-500" href="mailto:ArendaRate@yandex.ru">
+                    ArendaRate@yandex.ru
+                  </a>
+                </li>
+                <li>
+                  Новостной Telegram-канал:{' '}
+                  <a
+                    className="text-primary-600 hover:text-primary-500"
+                    href="https://t.me/ArendaRate"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    t.me/ArendaRate
+                  </a>
+                </li>
+                <li>
+                  Техподдержка в Telegram:{' '}
+                  <a
+                    className="text-primary-600 hover:text-primary-500"
+                    href="https://t.me/ArendaRateTS"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    t.me/ArendaRateTS
+                  </a>
+                </li>
+              </ul>
             </section>
 
             <section className="border-t dark:border-gray-700 pt-8">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Поддержать проект</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                ArendRate — это независимый проект, созданный для помощи людям. 
+                ArendaRate — это независимый проект, созданный для помощи людям. 
                 Если вы хотите поддержать развитие платформы, вы можете сделать это через:
               </p>
               <a

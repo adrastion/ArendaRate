@@ -6,7 +6,7 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
 export const metadata: Metadata = {
-  title: 'ArendRate - Отзывы об аренде жилья',
+  title: 'ArendaRate - Отзывы об аренде жилья',
   description: 'Платформа для отзывов об аренде жилья с интерактивной картой',
 }
 
