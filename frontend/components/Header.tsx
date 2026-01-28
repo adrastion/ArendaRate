@@ -38,9 +38,12 @@ export function Header() {
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 z-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
+          <Link href="/" className="text-xl font-bold text-primary-600 dark:text-primary-400 flex items-center">
             <span className="hidden sm:inline">ArendRate <span className="text-sm font-normal text-gray-600 dark:text-gray-400">(Отзывы о жилье)</span></span>
-            <span className="sm:hidden">ArendRate</span>
+            <span className="sm:hidden flex items-center gap-1">
+              ArendRate
+              <span className="text-sm font-normal text-gray-600 dark:text-gray-400">(Отзывы о жилье)</span>
+            </span>
           </Link>
 
           {/* Десктопное меню */}
