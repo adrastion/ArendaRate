@@ -159,8 +159,13 @@ export default function AboutPage() {
                 </a>
               </div>
 
-              <div className="mt-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30 p-4">
-                <div className="flex items-start gap-3">
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <a
+                  className="group flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/40 p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                  href="https://t.me/ArendaRate"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path
@@ -175,16 +180,41 @@ export default function AboutPage() {
                   <div className="min-w-0">
                     <div className="font-semibold text-gray-900 dark:text-gray-100">Новостной Telegram-канал</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">t.me/ArendaRate</div>
-                    <a
-                      className="mt-2 inline-flex text-sm text-sky-700 dark:text-sky-300 hover:underline"
-                      href="https://t.me/ArendaRate"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <div className="mt-2 text-sm text-sky-700 dark:text-sky-300 group-hover:underline">
                       Перейти в канал →
-                    </a>
+                    </div>
                   </div>
-                </div>
+                </a>
+
+                <a
+                  className="group flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/40 p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                  href="https://vk.com/club235637206"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z"
+                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13l8-6-3 10-2-3-3-1Z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">
+                      Группа во ВКонтакте
+                    </div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">
+                      vk.com/club235637206
+                    </div>
+                    <div className="mt-2 text-sm text-blue-700 dark:text-blue-300 group-hover:underline">
+                      Открыть сообщество →
+                    </div>
+                  </div>
+                </a>
               </div>
             </section>
 
