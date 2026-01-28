@@ -55,6 +55,12 @@ export function Header() {
             >
               О нас
             </Link>
+            <Link
+              href="/constitution"
+              className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              Конституция
+            </Link>
             <a
               href="https://yoomoney.ru/to/4100119446457843"
               target="_blank"
@@ -145,6 +151,16 @@ export function Header() {
                     role="menuitem"
                   >
                     О нас
+                  </Link>
+
+                  {/* Конституция */}
+                  <Link
+                    href="/constitution"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    role="menuitem"
+                  >
+                    Конституция
                   </Link>
 
                   {/* Сказать спасибо */}

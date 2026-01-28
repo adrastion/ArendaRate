@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Script from 'next/script'
@@ -13,6 +13,76 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    function initVKID() {
+      if (cancelled) return
+
+      const container = document.getElementById('vkid-one-tap-container')
+      if (!container) {
+        // Ждём, пока React отрисует контейнер
+        requestAnimationFrame(initVKID)
+        return
+      }
+
+      // @ts-expect-error VKIDSDK добавляется внешним скриптом
+      if (typeof window === 'undefined' || !window.VKIDSDK) {
+        setTimeout(initVKID, 100)
+        return
+      }
+
+      // Чтобы не инициализировать виджет повторно в тот же контейнер
+      if ((container as HTMLElement).dataset.vkidInitialized === 'true') {
+        return
+      }
+      ;(container as HTMLElement).dataset.vkidInitialized = 'true'
+
+      // @ts-expect-error VKIDSDK добавляется внешним скриптом
+      const VKID = window.VKIDSDK
+
+      VKID.Config.init({
+        app: 54435093,
+        redirectUrl: 'https://arendarate.ru/api/auth/vk/callback',
+        responseMode: VKID.ConfigResponseMode.Callback,
+        source: VKID.ConfigSource.LOWCODE,
+        scope: '',
+      })
+
+      const oneTap = new VKID.OneTap()
+
+      function vkidOnSuccess(data: any) {
+        console.log('VKID success', data)
+      }
+
+      function vkidOnError(error: any) {
+        console.error('VKID error', error)
+      }
+
+      oneTap
+        .render({
+          container,
+          fastAuthEnabled: false,
+          showAlternativeLogin: true,
+        })
+        .on(VKID.WidgetEvents.ERROR, vkidOnError)
+        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload: any) {
+          const code = payload.code
+          const deviceId = payload.device_id
+
+          VKID.Auth.exchangeCode(code, deviceId)
+            .then(vkidOnSuccess)
+            .catch(vkidOnError)
+        })
+    }
+
+    initVKID()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,50 +196,6 @@ export default function LoginPage() {
                 src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"
                 strategy="afterInteractive"
               />
-              <Script id="vkid-init" strategy="afterInteractive">{`
-                (function initVKID() {
-                  if (!('VKIDSDK' in window)) {
-                    setTimeout(initVKID, 100);
-                    return;
-                  }
-
-                  const VKID = window.VKIDSDK;
-
-                  VKID.Config.init({
-                    app: 54435093,
-                    redirectUrl: 'https://arendarate.ru/api/auth/vk/callback',
-                    responseMode: VKID.ConfigResponseMode.Callback,
-                    source: VKID.ConfigSource.LOWCODE,
-                    scope: '',
-                  });
-
-                  const oneTap = new VKID.OneTap();
-
-                  function vkidOnSuccess(data) {
-                    console.log('VKID success', data);
-                  }
-                
-                  function vkidOnError(error) {
-                    console.error('VKID error', error);
-                  }
-
-                  oneTap
-                    .render({
-                      container: document.getElementById('vkid-one-tap-container'),
-                      fastAuthEnabled: false,
-                      showAlternativeLogin: true,
-                    })
-                    .on(VKID.WidgetEvents.ERROR, vkidOnError)
-                    .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
-                      const code = payload.code;
-                      const deviceId = payload.device_id;
-
-                      VKID.Auth.exchangeCode(code, deviceId)
-                        .then(vkidOnSuccess)
-                        .catch(vkidOnError);
-                    });
-                })();
-              `}</Script>
             </div>
           </div>
 
