@@ -127,7 +127,12 @@ export default function LoginPage() {
                 strategy="afterInteractive"
               />
               <Script id="vkid-init" strategy="afterInteractive">{`
-                if ('VKIDSDK' in window) {
+                (function initVKID() {
+                  if (!('VKIDSDK' in window)) {
+                    setTimeout(initVKID, 100);
+                    return;
+                  }
+
                   const VKID = window.VKIDSDK;
 
                   VKID.Config.init({
@@ -163,7 +168,7 @@ export default function LoginPage() {
                         .then(vkidOnSuccess)
                         .catch(vkidOnError);
                     });
-                }
+                })();
               `}</Script>
             </div>
           </div>
