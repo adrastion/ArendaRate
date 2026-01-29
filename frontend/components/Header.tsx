@@ -72,9 +72,23 @@ export function Header() {
               <>
                 <Link
                   href="/profile"
-                  className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
+                  className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden bg-primary-100 text-primary-600 hover:ring-2 hover:ring-primary-500 transition"
+                  aria-label="Профиль"
                 >
-                  Профиль
+                  {user.avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-10 h-10 object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span className="text-sm font-semibold">
+                      {user.name?.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </Link>
                 {user.role === 'MODERATOR' || user.role === 'ADMIN' ? (
                   <Link
@@ -173,10 +187,26 @@ export function Header() {
                       <Link
                         href="/profile"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         role="menuitem"
                       >
-                        Профиль
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full overflow-hidden bg-primary-100 text-primary-600">
+                          {user.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={user.avatar}
+                              alt={user.name}
+                              className="w-8 h-8 object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <span className="text-xs font-semibold">
+                              {user.name?.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
+                        <span>Профиль</span>
                       </Link>
                       {user.role === 'MODERATOR' || user.role === 'ADMIN' ? (
                         <Link
