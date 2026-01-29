@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Script from 'next/script'
 import { useAuthStore } from '@/store/authStore'
 
 export default function RegisterPage() {
@@ -17,6 +18,78 @@ export default function RegisterPage() {
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const handleOAuth = (provider: 'yandex' | 'vk') => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    // Если apiUrl уже содержит /api, не добавляем его снова
+    const baseUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`
+    window.location.href = `${baseUrl}/auth/${provider}`
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    function initVKID() {
+      if (cancelled) return
+
+      const container = document.getElementById('vkid-one-tap-container-register')
+      if (!container) {
+        requestAnimationFrame(initVKID)
+        return
+      }
+
+      // @ts-expect-error VKIDSDK добавляется внешним скриптом
+      if (typeof window === 'undefined' || !window.VKIDSDK) {
+        setTimeout(initVKID, 100)
+        return
+      }
+
+      if ((container as HTMLElement).dataset.vkidInitialized === 'true') return
+      ;(container as HTMLElement).dataset.vkidInitialized = 'true'
+
+      // @ts-expect-error VKIDSDK добавляется внешним скриптом
+      const VKID = window.VKIDSDK
+
+      VKID.Config.init({
+        app: 54435093,
+        redirectUrl: 'https://arendarate.ru/api/auth/vk/callback',
+        responseMode: VKID.ConfigResponseMode.Callback,
+        source: VKID.ConfigSource.LOWCODE,
+        scope: '',
+      })
+
+      const oneTap = new VKID.OneTap()
+
+      function vkidOnSuccess(data: any) {
+        console.log('VKID success', data)
+      }
+
+      function vkidOnError(error: any) {
+        console.error('VKID error', error)
+      }
+
+      oneTap
+        .render({
+          container,
+          fastAuthEnabled: false,
+          showAlternativeLogin: true,
+        })
+        .on(VKID.WidgetEvents.ERROR, vkidOnError)
+        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload: any) {
+          const code = payload.code
+          const deviceId = payload.device_id
+
+          VKID.Auth.exchangeCode(code, deviceId)
+            .then(vkidOnSuccess)
+            .catch(vkidOnError)
+        })
+    }
+
+    initVKID()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -172,6 +245,34 @@ export default function RegisterPage() {
             >
               {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-50 text-gray-500">Или зарегистрируйтесь через</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <button
+              type="button"
+              onClick={() => handleOAuth('yandex')}
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            >
+              Яндекс
+            </button>
+
+            <div className="space-y-2">
+              <div id="vkid-one-tap-container-register" />
+
+              <Script
+                src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"
+                strategy="afterInteractive"
+              />
+            </div>
           </div>
 
           <div className="text-center">
