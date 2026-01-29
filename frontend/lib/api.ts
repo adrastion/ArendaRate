@@ -95,6 +95,20 @@ export const authApi = {
   },
 }
 
+export const userApi = {
+  updateEmail: async (email: string): Promise<{ user: User }> => {
+    const response = await api.put('/user/me/email', { email })
+    return response.data
+  },
+  updatePassword: async (data: {
+    currentPassword?: string
+    newPassword: string
+  }): Promise<{ status: 'ok' }> => {
+    const response = await api.put('/user/me/password', data)
+    return response.data
+  },
+}
+
 export const addressApi = {
   search: async (query: string): Promise<{ addresses: AddressSearchResult[] }> => {
     const cacheKey = getCacheKey('/addresses/search', { q: query })

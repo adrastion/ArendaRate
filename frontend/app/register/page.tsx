@@ -18,6 +18,7 @@ export default function RegisterPage() {
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   const handleOAuth = (provider: 'yandex' | 'vk') => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -98,6 +99,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!acceptedTerms) {
+      setError('Необходимо принять правила пользовательского соглашения')
+      return
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Пароли не совпадают')
@@ -240,11 +246,27 @@ export default function RegisterPage() {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !acceptedTerms}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
               {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
             </button>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <input
+              id="acceptedTerms"
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <label htmlFor="acceptedTerms" className="text-sm text-gray-700">
+              Принимаю правила{' '}
+              <Link href="/user-agreement" className="text-primary-600 hover:text-primary-500 underline">
+                пользовательского соглашения
+              </Link>
+            </label>
           </div>
 
           <div className="relative">

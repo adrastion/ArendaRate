@@ -9,6 +9,7 @@ import apartmentRoutes from './routes/apartments';
 import reviewRoutes from './routes/reviews';
 import moderationRoutes from './routes/moderation';
 import uploadRoutes from './routes/upload';
+import userRoutes from './routes/user';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/apartments', apartmentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/moderation', moderationRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/user', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

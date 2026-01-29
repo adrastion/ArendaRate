@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { reviewApi } from '@/lib/api'
+import { reviewApi, userApi } from '@/lib/api'
 import { Review } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
@@ -12,10 +12,17 @@ import Link from 'next/link'
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, checkAuth } = useAuthStore()
+  const { user, checkAuth, logout, setUser } = useAuthStore()
   const [reviews, setReviews] = useState<Review[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [editingReview, setEditingReview] = useState<Review | null>(null)
+  const [emailDraft, setEmailDraft] = useState('')
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [profileError, setProfileError] = useState('')
+  const [profileSuccess, setProfileSuccess] = useState('')
 
   useEffect(() => {
     checkAuth().then(() => {
@@ -23,9 +30,44 @@ export default function ProfilePage() {
         router.push('/login')
         return
       }
+      setEmailDraft(user.email || '')
       loadReviews()
     })
   }, [user])
+
+  const saveEmail = async () => {
+    setProfileError('')
+    setProfileSuccess('')
+    setEmailSaving(true)
+    try {
+      const res = await userApi.updateEmail(emailDraft)
+      setUser(res.user)
+      setProfileSuccess('Email обновлён')
+    } catch (err: any) {
+      setProfileError(err.response?.data?.message || 'Ошибка обновления email')
+    } finally {
+      setEmailSaving(false)
+    }
+  }
+
+  const savePassword = async () => {
+    setProfileError('')
+    setProfileSuccess('')
+    setPasswordSaving(true)
+    try {
+      await userApi.updatePassword({
+        currentPassword: currentPassword || undefined,
+        newPassword,
+      })
+      setProfileSuccess('Пароль обновлён')
+      setCurrentPassword('')
+      setNewPassword('')
+    } catch (err: any) {
+      setProfileError(err.response?.data?.message || 'Ошибка обновления пароля')
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
 
   const loadReviews = async () => {
     try {
@@ -76,7 +118,15 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Мой профиль</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">Мой профиль</h1>
+          <button
+            onClick={logout}
+            className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700"
+          >
+            Выйти
+          </button>
+        </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center space-x-4">
@@ -93,7 +143,77 @@ export default function ProfilePage() {
             )}
             <div>
               <h2 className="text-xl font-semibold">{user?.name}</h2>
-              <p className="text-gray-500">{user?.email}</p>
+              <p className="text-gray-500">{user?.email || 'Email не указан'}</p>
+            </div>
+          </div>
+
+          {(profileError || profileSuccess) && (
+            <div className="mt-4">
+              {profileError ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {profileError}
+                </div>
+              ) : (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                  {profileSuccess}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="mt-6 grid gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <div className="flex gap-2">
+                <input
+                  value={emailDraft}
+                  onChange={(e) => setEmailDraft(e.target.value)}
+                  placeholder="Введите email"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={saveEmail}
+                  disabled={emailSaving}
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {emailSaving ? 'Сохранение…' : 'Сохранить'}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Если вы входили через VK/Яндекс и email не пришёл — поле будет пустым, вы можете добавить его вручную.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+              <div className="grid gap-2">
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Текущий пароль (если установлен)"
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white"
+                />
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Новый пароль (минимум 6 символов)"
+                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={savePassword}
+                  disabled={passwordSaving || newPassword.length < 6}
+                  className="w-fit px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {passwordSaving ? 'Сохранение…' : 'Сохранить пароль'}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Если пароль ещё не установлен (вход через VK/Яндекс), просто задайте новый пароль — поле “текущий пароль” можно оставить пустым.
+              </p>
             </div>
           </div>
         </div>
@@ -164,12 +284,23 @@ export default function ProfilePage() {
                 {review.photos.length > 0 && (
                   <div className="grid grid-cols-4 gap-2">
                     {review.photos.map((photo) => (
-                      <img
+                      <a
                         key={photo.id}
-                        src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                        alt="Фото"
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
+                        href={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                        title="Открыть фото"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
+                          alt="Фото"
+                          className="w-full h-24 object-cover rounded-lg"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </a>
                     ))}
                   </div>
                 )}

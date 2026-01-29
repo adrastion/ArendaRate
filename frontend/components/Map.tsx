@@ -209,7 +209,7 @@ export function Map({ markers, onMarkerClick }: MapProps) {
         zoomControl={true}
         attributionControl={false}
       >
-        <LayersControl position="bottomright" collapsed={true}>
+        <LayersControl position="topright" collapsed={true}>
           <LayersControl.BaseLayer checked name="Стандартная карта">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
