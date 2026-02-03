@@ -6,13 +6,15 @@ import { AddressSearchResult } from '@/types'
 
 interface AddressSearchProps {
   onSelect: (address: AddressSearchResult) => void
+  /** Геолокация пользователя — адреса ближе к ней показываются первыми в поиске */
+  userLocation?: { lat: number; lng: number } | null
 }
 
 // Кэш результатов поиска на клиенте
 const searchCache = new Map<string, AddressSearchResult[]>()
 const MAX_CACHE_SIZE = 50
 
-export function AddressSearch({ onSelect }: AddressSearchProps) {
+export function AddressSearch({ onSelect, userLocation = null }: AddressSearchProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<AddressSearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -31,8 +33,9 @@ export function AddressSearch({ onSelect }: AddressSearchProps) {
       return
     }
 
-    // Проверяем кэш
-    const cached = searchCache.get(query.toLowerCase())
+    // Ключ кэша: запрос + геолокация (при наличии), т.к. с near результаты сортируются иначе
+    const cacheKey = query.toLowerCase() + (userLocation ? `|${userLocation.lat},${userLocation.lng}` : '')
+    const cached = searchCache.get(cacheKey)
     if (cached) {
       setResults(cached)
       setIsOpen(true)
@@ -42,20 +45,21 @@ export function AddressSearch({ onSelect }: AddressSearchProps) {
     const searchTimeout = setTimeout(async () => {
       setIsLoading(true)
       try {
-        console.log('🔍 Starting address search for:', query)
-        const response = await addressApi.search(query)
+        console.log('🔍 Starting address search for:', query, userLocation ? '(with user location)' : '')
+        const response = await addressApi.search(query, {
+          near: userLocation ?? undefined,
+        })
         console.log('✅ Search response received:', response)
-        
+
         if (response && response.addresses) {
           console.log(`📋 Found ${response.addresses.length} addresses`)
-          // Сохраняем в кэш
           if (searchCache.size >= MAX_CACHE_SIZE) {
-          const firstKey = searchCache.keys().next().value
-          if (firstKey) {
-            searchCache.delete(firstKey)
+            const firstKey = searchCache.keys().next().value
+            if (firstKey) {
+              searchCache.delete(firstKey)
+            }
           }
-          }
-          searchCache.set(query.toLowerCase(), response.addresses)
+          searchCache.set(cacheKey, response.addresses)
           
           setResults(response.addresses)
           setIsOpen(true)
@@ -79,7 +83,7 @@ export function AddressSearch({ onSelect }: AddressSearchProps) {
     }, 500) // Увеличиваем debounce для снижения нагрузки
 
     return () => clearTimeout(searchTimeout)
-  }, [query])
+  }, [query, userLocation])
 
   return (
     <div className="relative">

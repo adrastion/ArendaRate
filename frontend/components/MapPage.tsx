@@ -33,9 +33,14 @@ interface Marker {
   isActive: boolean
 }
 
+const DEFAULT_MAP_CENTER: [number, number] = [55.751574, 37.573856] // Москва
+const DEFAULT_MAP_ZOOM = 10
+const USER_LOCATION_ZOOM = 12
+
 export function MapPage() {
   const router = useRouter()
   const { user, checkAuth } = useAuthStore()
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [markers, setMarkers] = useState<Marker[]>([])
   const [selectedAddress, setSelectedAddress] = useState<{
     id: string
@@ -59,7 +64,24 @@ export function MapPage() {
 
   useEffect(() => {
     loadMarkers()
-  }, []) // Загружаем маркеры только один раз при монтировании
+  }, [])
+
+  // Определение геолокации пользователя для центра карты и приоритета в поиске
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        })
+      },
+      () => {
+        // Отказ или ошибка — остаёмся на центре по умолчанию (Москва)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    )
+  }, [])
 
   const loadMarkers = useCallback(async () => {
     try {
@@ -179,7 +201,10 @@ export function MapPage() {
         <div className="absolute top-4 left-4 right-4 md:right-auto z-10 md:w-96 md:max-w-[calc(100%-2rem)] pointer-events-none">
           <div className="pointer-events-auto relative">
             <div className="pr-14 md:pr-0">
-              <AddressSearch onSelect={handleAddressSelect} />
+              <AddressSearch
+              onSelect={handleAddressSelect}
+              userLocation={userLocation}
+            />
             </div>
             {user && (
               <div className="md:hidden absolute top-0 right-0">
@@ -198,7 +223,13 @@ export function MapPage() {
         )}
 
         <div className="w-full h-full relative" style={{ zIndex: 1 }}>
-          <Map markers={markers} onMarkerClick={handleMarkerClick} />
+          <Map
+            markers={markers}
+            onMarkerClick={handleMarkerClick}
+            center={userLocation ? [userLocation.lat, userLocation.lng] : DEFAULT_MAP_CENTER}
+            zoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_MAP_ZOOM}
+            userLocation={userLocation}
+          />
         </div>
 
         {isLoadingAddress && (

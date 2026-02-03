@@ -32,12 +32,33 @@ type AddressResult = {
 
 const router = express.Router();
 
+/** Примерное расстояние в км между двумя точками (формула Haversine) */
+function distanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 // Поиск адресов
 router.get(
   '/search',
   [
     query('q').trim().notEmpty().withMessage('Search query is required'),
     query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Invalid limit'),
+    query('near').optional().isString(),
   ],
   optionalAuth,
   async (req: Request, res: Response, next: NextFunction) => {
@@ -50,6 +71,20 @@ router.get(
 
       const searchQuery = req.query.q as string;
       const limit = parseInt(req.query.limit as string) || 10;
+      const nearParam = req.query.near as string | undefined;
+      let nearLat: number | null = null;
+      let nearLon: number | null = null;
+      if (nearParam) {
+        const parts = nearParam.split(',');
+        if (parts.length === 2) {
+          const lat = parseFloat(parts[0].trim());
+          const lon = parseFloat(parts[1].trim());
+          if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+            nearLat = lat;
+            nearLon = lon;
+          }
+        }
+      }
 
       console.log('Searching addresses for query:', searchQuery, 'limit:', limit);
 
@@ -191,6 +226,20 @@ router.get(
           console.error('Error fetching from Nominatim:', error);
           // Продолжаем работу только с результатами из БД
         }
+      }
+
+      // Сортировка по близости к пользователю, если передан near
+      if (nearLat !== null && nearLon !== null) {
+        allResults.sort((a, b) => {
+          const hasA = a.latitude != null && a.longitude != null;
+          const hasB = b.latitude != null && b.longitude != null;
+          if (!hasA && !hasB) return 0;
+          if (!hasA) return 1;
+          if (!hasB) return -1;
+          const distA = distanceKm(nearLat!, nearLon!, a.latitude!, a.longitude!);
+          const distB = distanceKm(nearLat!, nearLon!, b.latitude!, b.longitude!);
+          return distA - distB;
+        });
       }
 
       console.log('Sending results:', allResults.length);

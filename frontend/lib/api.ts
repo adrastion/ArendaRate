@@ -110,12 +110,19 @@ export const userApi = {
 }
 
 export const addressApi = {
-  search: async (query: string): Promise<{ addresses: AddressSearchResult[] }> => {
-    const cacheKey = getCacheKey('/addresses/search', { q: query })
+  search: async (
+    query: string,
+    options?: { near?: { lat: number; lng: number } }
+  ): Promise<{ addresses: AddressSearchResult[] }> => {
+    const params: { q: string; near?: string } = { q: query }
+    if (options?.near) {
+      params.near = `${options.near.lat},${options.near.lng}`
+    }
+    const cacheKey = getCacheKey('/addresses/search', params)
     const cached = getCached(cacheKey)
     if (cached) return cached
 
-    const response = await api.get('/addresses/search', { params: { q: query } })
+    const response = await api.get('/addresses/search', { params })
     setCache(cacheKey, response.data)
     return response.data
   },

@@ -24,31 +24,57 @@ interface Marker {
   isActive: boolean
 }
 
+const DEFAULT_CENTER: [number, number] = [55.751574, 37.573856] // Москва
+const DEFAULT_ZOOM = 10
+
 interface MapProps {
   markers: Marker[]
   onMarkerClick: (addressId: string) => void
+  /** Начальный центр карты (например, геолокация пользователя). При изменении карта перелетает. */
+  center?: [number, number]
+  /** Начальный зум. При изменении center обновляется. */
+  zoom?: number
+  /** Геолокация пользователя — отображается маркером на карте */
+  userLocation?: { lat: number; lng: number } | null
 }
 
-// Компонент для автофита карты под маркеры (только при первой загрузке)
-function MapBounds({ markers, isInitialFit }: { markers: Marker[]; isInitialFit: { current: boolean } }) {
+// Обновление центра и зума карты при изменении props (например, после получения геолокации)
+function SetView({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap()
+  useEffect(() => {
+    map.setView(center, zoom)
+  }, [map, center[0], center[1], zoom])
+  return null
+}
+
+// Компонент для автофита карты под маркеры (только при первой загрузке и если центр по умолчанию — без геолокации)
+function MapBounds({
+  markers,
+  isInitialFit,
+  useDefaultCenter,
+}: {
+  markers: Marker[]
+  isInitialFit: { current: boolean }
+  useDefaultCenter: boolean
+}) {
   const map = useMap()
 
   useEffect(() => {
-    if (markers.length > 0 && !isInitialFit.current) {
+    if (useDefaultCenter && markers.length > 0 && !isInitialFit.current) {
       try {
         const bounds = L.latLngBounds(
           markers.map((m) => [m.latitude, m.longitude])
         )
-        map.fitBounds(bounds, { 
+        map.fitBounds(bounds, {
           padding: [50, 50],
-          maxZoom: 15 
+          maxZoom: 15,
         })
         isInitialFit.current = true
       } catch (error) {
         console.warn('Could not set bounds:', error)
       }
     }
-  }, [markers, map, isInitialFit])
+  }, [markers, map, isInitialFit, useDefaultCenter])
 
   return null
 }
@@ -114,7 +140,25 @@ function AttributionCleaner() {
   return null
 }
 
-export function Map({ markers, onMarkerClick }: MapProps) {
+// Иконка маркера геолокации пользователя (синяя точка с обводкой)
+const userLocationIcon = L.divIcon({
+  className: 'custom-marker-user-location',
+  html: `
+    <div style="
+      position: relative;
+      width: 20px;
+      height: 20px;
+      background: #2563eb;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    "></div>
+  `,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+})
+
+export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, userLocation = null }: MapProps) {
   const mapRef = useRef<L.Map | null>(null)
   const isInitialFit = useRef<boolean>(false)
 
@@ -203,12 +247,13 @@ export function Map({ markers, onMarkerClick }: MapProps) {
     <div className="w-full h-full" style={{ minHeight: '500px' }}>
       <MapContainer
         ref={mapRef as any}
-        center={[55.751574, 37.573856]} // Москва по умолчанию
-        zoom={10}
+        center={center}
+        zoom={zoom}
         style={{ height: '100%', width: '100%', zIndex: 1 }}
         zoomControl={true}
         attributionControl={false}
       >
+        <SetView center={center} zoom={zoom} />
         <LayersControl position="topright" collapsed={true}>
           <LayersControl.BaseLayer checked name="Стандартная карта">
             <TileLayer
@@ -242,7 +287,11 @@ export function Map({ markers, onMarkerClick }: MapProps) {
           </LayersControl.BaseLayer>
         </LayersControl>
         
-        <MapBounds markers={markers} isInitialFit={isInitialFit} />
+        <MapBounds
+          markers={markers}
+          isInitialFit={isInitialFit}
+          useDefaultCenter={center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1]}
+        />
         <ZoomControlPosition />
         <AttributionCleaner />
         
@@ -253,6 +302,19 @@ export function Map({ markers, onMarkerClick }: MapProps) {
           </div>
         </div>
 
+        {userLocation && (
+          <Marker
+            position={[userLocation.lat, userLocation.lng]}
+            icon={userLocationIcon}
+            zIndexOffset={1000}
+          >
+            <Popup>
+              <div style={{ padding: '8px', textAlign: 'center' }}>
+                <strong>Вы здесь</strong>
+              </div>
+            </Popup>
+          </Marker>
+        )}
         {markersWithIcons.map((marker) => (
           <Marker
             key={marker.id}
