@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { reviewApi, uploadApi, addressApi } from '@/lib/api'
+import { getScoreButtonClasses } from '@/lib/ratingColors'
 import { RatingCriterion, RATING_CRITERIA_LABELS } from '@/types'
 import { format } from 'date-fns'
 
@@ -252,12 +253,12 @@ export function AddReviewModal({
   if (step === 1) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Добавить отзыв - Шаг 1: Выбор адреса</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Добавить отзыв - Шаг 1: Выбор адреса</h2>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Поиск адреса
               </label>
               <input
@@ -265,27 +266,27 @@ export function AddReviewModal({
                 value={addressSearchQuery}
                 onChange={(e) => setAddressSearchQuery(e.target.value)}
                 placeholder="Город, улица, дом..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               />
               {addressResults.length > 0 ? (
-                <div className="mt-2 border border-gray-200 rounded-lg max-h-60 overflow-y-auto bg-white">
+                <div className="mt-2 border border-gray-200 dark:border-gray-600 rounded-lg max-h-60 overflow-y-auto bg-white dark:bg-gray-700">
                   {addressResults.map((address) => (
-                    <div key={address.id} className="p-4 border-b border-gray-200 bg-white">
-                      <div className="font-medium mb-2 text-gray-900">
+                    <div key={address.id} className="p-4 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700">
+                      <div className="font-medium mb-2 text-gray-900 dark:text-gray-100">
                         {address.formattedAddress || `${address.city}, ${address.street}, ${address.building}`}
                       </div>
-                      <div className="text-xs text-gray-500 mb-2">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                         {address.reviewsCount !== undefined && address.reviewsCount > 0 ? (
                           <>{address.reviewsCount} отзывов</>
                         ) : (
-                          <span className="text-gray-400">Нет отзывов</span>
+                          <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <input
                           type="text"
                           placeholder="Номер квартиры"
-                          className="flex-1 px-3 py-1 border border-gray-300 rounded bg-white text-gray-900 placeholder-gray-500"
+                          className="flex-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                           onKeyPress={(e) => {
                             if (e.key === 'Enter') {
                               const apartmentNumber = (e.target as HTMLInputElement).value
@@ -315,7 +316,7 @@ export function AddReviewModal({
                   ))}
                 </div>
               ) : addressSearchQuery.length >= 3 ? (
-                <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-gray-50 text-center text-gray-500">
+                <div className="mt-2 p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-center text-gray-500 dark:text-gray-400">
                   <p className="mb-2">Адрес не найден</p>
                   <p className="text-sm">Проверьте правильность ввода или создайте новый адрес вручную</p>
                 </div>
@@ -325,7 +326,7 @@ export function AddReviewModal({
             <div className="flex justify-end space-x-4">
               <button
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 Отмена
               </button>
@@ -338,29 +339,52 @@ export function AddReviewModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">Добавить отзыв - Шаг 2: Оценка и комментарий</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Добавить отзыв - Шаг 2: Оценка и комментарий</h2>
 
           {selectedAddress && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                {selectedAddress.city}, {selectedAddress.street}, {selectedAddress.building}, Кв.{' '}
-                {watch('apartmentNumber')}
+            <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-3">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {selectedAddress.city}, {selectedAddress.street}, {selectedAddress.building}
               </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Номер квартиры
+                </label>
+                <input
+                  type="text"
+                  {...register('apartmentNumber')}
+                  placeholder="Например: 42"
+                  className="w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                />
+                {errors.apartmentNumber && (
+                  <p className="text-red-500 text-sm mt-1">{errors.apartmentNumber.message}</p>
+                )}
+              </div>
             </div>
           )}
 
           <input type="hidden" {...register('addressId')} />
-          <input type="hidden" {...register('apartmentNumber')} />
 
           {/* Оценки по критериям */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Оценка по критериям (1-5)</h3>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Оценка по критериям (1–5)</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1">
+                <span className="w-5 h-5 rounded bg-red-500 text-white text-xs flex items-center justify-center">1</span>
+                <span>плохо</span>
+              </span>
+              <span className="text-gray-400">→</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="w-5 h-5 rounded bg-green-500 text-white text-xs flex items-center justify-center">5</span>
+                <span>отлично</span>
+              </span>
+            </p>
             <div className="space-y-4">
               {Object.values(RatingCriterion).map((criterion) => (
                 <div key={criterion}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {RATING_CRITERIA_LABELS[criterion]}
                   </label>
                   <div className="flex space-x-2">
@@ -369,11 +393,8 @@ export function AddReviewModal({
                         key={score}
                         type="button"
                         onClick={() => setValue(`ratings.${criterion}`, score)}
-                        className={`w-12 h-12 rounded-lg border-2 ${
-                          ratings[criterion] === score
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'border-gray-300 hover:border-primary-400 bg-white text-gray-900'
-                        }`}
+                        className={getScoreButtonClasses(score, ratings[criterion] === score)}
+                        title={score === 1 ? 'Плохо' : score === 5 ? 'Отлично' : undefined}
                       >
                         {score}
                       </button>
@@ -391,16 +412,16 @@ export function AddReviewModal({
 
           {/* Комментарий */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Комментарий (до 100 символов)
             </label>
             <textarea
               {...register('comment')}
               maxLength={100}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
-            <div className="text-sm text-gray-500 mt-1">
+            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {watch('comment')?.length || 0}/100
             </div>
             {errors.comment && (
@@ -411,24 +432,24 @@ export function AddReviewModal({
           {/* Период проживания */}
           <div className="mb-6 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Период проживания с
               </label>
               <input
                 type="date"
                 {...register('periodFrom')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
               />
               {errors.periodFrom && (
                 <p className="text-red-500 text-sm mt-1">{errors.periodFrom.message}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">по</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">по</label>
               <input
                 type="date"
                 {...register('periodTo')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
               />
               {errors.periodTo && (
                 <p className="text-red-500 text-sm mt-1">{errors.periodTo.message}</p>
@@ -438,7 +459,7 @@ export function AddReviewModal({
 
           {/* Загрузка фото */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Фотографии (до 5 штук)
             </label>
             <input
@@ -446,7 +467,7 @@ export function AddReviewModal({
               accept="image/*"
               multiple
               onChange={handlePhotoChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
             />
             {photos.length > 0 && (
               <div className="mt-4 grid grid-cols-5 gap-2">
@@ -474,14 +495,14 @@ export function AddReviewModal({
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               Назад
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               Отмена
             </button>

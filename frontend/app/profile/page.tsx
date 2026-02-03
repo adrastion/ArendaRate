@@ -96,13 +96,13 @@ export default function ProfilePage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200'
       case 'APPROVED':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200'
       case 'REJECTED':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
     }
   }
 
@@ -115,20 +115,20 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Мой профиль</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Мой профиль</h1>
           <button
             onClick={logout}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700"
+            className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
           >
             Выйти
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center space-x-4">
             {user?.avatar ? (
               <img
@@ -137,24 +137,24 @@ export default function ProfilePage() {
                 className="w-20 h-20 rounded-full"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-2xl font-semibold">
+              <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-2xl font-semibold">
                 {user?.name.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
-              <h2 className="text-xl font-semibold">{user?.name}</h2>
-              <p className="text-gray-500">{user?.email || 'Email не указан'}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{user?.name}</h2>
+              <p className="text-gray-500 dark:text-gray-400">{user?.email || 'Email не указан'}</p>
             </div>
           </div>
 
           {(profileError || profileSuccess) && (
             <div className="mt-4">
               {profileError ? (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
                   {profileError}
                 </div>
               ) : (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded">
                   {profileSuccess}
                 </div>
               )}
@@ -163,13 +163,13 @@ export default function ProfilePage() {
 
           <div className="mt-6 grid gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
               <div className="flex gap-2">
                 <input
                   value={emailDraft}
                   onChange={(e) => setEmailDraft(e.target.value)}
                   placeholder="Введите email"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <button
                   type="button"
@@ -180,27 +180,27 @@ export default function ProfilePage() {
                   {emailSaving ? 'Сохранение…' : 'Сохранить'}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Если вы входили через VK/Яндекс и email не пришёл — поле будет пустым, вы можете добавить его вручную.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Пароль</label>
               <div className="grid gap-2">
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Текущий пароль (если установлен)"
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Новый пароль (минимум 6 символов)"
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <button
                   type="button"
@@ -219,16 +219,16 @@ export default function ProfilePage() {
         </div>
 
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">Мои отзывы ({reviews.length})</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Мои отзывы ({reviews.length})</h2>
         </div>
 
         {reviews.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-500 dark:text-gray-400">
             У вас пока нет отзывов
             <div className="mt-4">
               <Link
                 href="/"
-                className="text-primary-600 hover:text-primary-700 underline"
+                className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline"
               >
                 Добавить отзыв
               </Link>
@@ -237,13 +237,13 @@ export default function ProfilePage() {
         ) : (
           <div className="space-y-4">
             {reviews.map((review) => (
-              <div key={review.id} className="bg-white rounded-lg shadow-md p-6">
+              <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <div className="font-semibold text-lg mb-2">
+                    <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">
                       <Link
                         href={`/apartment/${review.apartmentId}`}
-                        className="text-primary-600 hover:text-primary-700"
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
                       >
                         {review.apartment.address.city},{' '}
                         {review.apartment.address.street},{' '}
@@ -251,14 +251,14 @@ export default function ProfilePage() {
                         {review.apartment.number}
                       </Link>
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       Период:{' '}
                       {format(new Date(review.periodFrom), 'dd.MM.yyyy')} -{' '}
                       {format(new Date(review.periodTo), 'dd.MM.yyyy')}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-primary-600">
+                    <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                       {review.averageRating.toFixed(1)}
                     </div>
                     <span
@@ -271,11 +271,11 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <p className="mb-4">{review.comment}</p>
+                <p className="mb-4 text-gray-900 dark:text-gray-100">{review.comment}</p>
 
                 {review.status === 'REJECTED' && review.rejectionReason && (
-                  <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
-                    <p className="text-sm text-red-700">
+                  <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded p-3 mb-4">
+                    <p className="text-sm text-red-700 dark:text-red-300">
                       <strong>Причина отклонения:</strong> {review.rejectionReason}
                     </p>
                   </div>
@@ -306,7 +306,7 @@ export default function ProfilePage() {
                 )}
 
                 <div className="flex justify-between items-center mt-4">
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-400 dark:text-gray-500">
                     Создан:{' '}
                     {format(new Date(review.createdAt), 'dd.MM.yyyy HH:mm')}
                   </div>

@@ -93,55 +93,55 @@ export default function ModerationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Модерация отзывов</h1>
-          <div className="text-sm text-gray-600">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Модерация отзывов</h1>
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             Показаны отзывы на модерации
           </div>
         </div>
 
         {reviews.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-500 dark:text-gray-400">
             Нет отзывов на модерацию
           </div>
         ) : (
           <div className="space-y-4">
             {reviews.map((review) => (
-              <div key={review.id} className="bg-white rounded-lg shadow-md p-6">
+              <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <div className="font-semibold text-lg mb-2">
+                    <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">
                       {review.apartment.address.city},{' '}
                       {review.apartment.address.street},{' '}
                       {review.apartment.address.building}, Кв.{' '}
                       {review.apartment.number}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       Пользователь: {review.user.name}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       Период:{' '}
                       {format(new Date(review.periodFrom), 'dd.MM.yyyy')} -{' '}
                       {format(new Date(review.periodTo), 'dd.MM.yyyy')}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-primary-600">
+                    <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                       {review.averageRating.toFixed(1)}
                     </div>
                   </div>
                 </div>
 
-                <p className="mb-4">{review.comment}</p>
+                <p className="mb-4 text-gray-900 dark:text-gray-100">{review.comment}</p>
 
                 {review.ratings.length > 0 && (
                   <div className="mb-4">
                     <button
                       onClick={() => toggleReviewExpansion(review.id)}
-                      className="text-sm text-primary-600 hover:text-primary-700 mb-2"
+                      className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 mb-2"
                     >
                       {expandedReviews.has(review.id)
                         ? 'Скрыть детальные оценки'
@@ -154,10 +154,10 @@ export default function ModerationPage() {
                             key={rating.id}
                             className="flex justify-between items-center text-sm"
                           >
-                            <span className="text-gray-600">
+                            <span className="text-gray-600 dark:text-gray-300">
                               {RATING_CRITERIA_LABELS[rating.criterion]}
                             </span>
-                            <span className="font-semibold">{rating.score}/5</span>
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">{rating.score}/5</span>
                           </div>
                         ))}
                       </div>
@@ -208,17 +208,17 @@ export default function ModerationPage() {
             <button
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               Назад
             </button>
-            <span className="px-4 py-2">
+            <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
               Страница {page} из {totalPages}
             </span>
             <button
               onClick={() => setPage(page + 1)}
               disabled={page === totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               Вперед
             </button>

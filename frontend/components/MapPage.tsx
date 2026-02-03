@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useAuthStore } from '@/store/authStore'
 import { addressApi } from '@/lib/api'
@@ -17,7 +18,7 @@ const Map = dynamic(() => import('./Map').then((mod) => mod.Map), {
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Загрузка карты...</p>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">Загрузка карты...</p>
       </div>
     </div>
   ),
@@ -33,6 +34,7 @@ interface Marker {
 }
 
 export function MapPage() {
+  const router = useRouter()
   const { user, checkAuth } = useAuthStore()
   const [markers, setMarkers] = useState<Marker[]>([])
   const [selectedAddress, setSelectedAddress] = useState<{
@@ -69,63 +71,40 @@ export function MapPage() {
   }, [])
 
   const handleAddressSelect = async (address: any) => {
-    console.log('Address selected from search:', address, 'User:', user?.id)
-    
-    if (!user) {
-      // Перенаправление на страницу авторизации
-      window.location.href = '/login'
-      return
-    }
+    console.log('Address selected from search:', address)
 
     setIsLoadingAddress(true)
 
     try {
       let addressId = address.id
-      let addressData = address
 
       // Если адрес из Nominatim (не из БД), создаем его в БД
       if (!address.fromDatabase || address.id.startsWith('nominatim_')) {
-        console.log('Creating new address in database:', address)
-        try {
-          const createdAddress = await addressApi.create({
-            country: address.country,
-            city: address.city,
-            street: address.street || '',
-            building: address.building || '',
-            latitude: address.latitude,
-            longitude: address.longitude,
-          })
-          addressId = createdAddress.address.id
-          console.log('Address created with ID:', addressId)
-          
-          // Загружаем полные данные адреса из БД
-          const response = await addressApi.getById(addressId)
-          addressData = response.address
-        } catch (error: any) {
-          console.error('Error creating address:', error)
-          alert(`Ошибка при сохранении адреса: ${error.response?.data?.message || error.message || 'Попробуйте еще раз'}`)
+        if (user) {
+          try {
+            const createdAddress = await addressApi.create({
+              country: address.country,
+              city: address.city,
+              street: address.street || '',
+              building: address.building || '',
+              latitude: address.latitude,
+              longitude: address.longitude,
+            })
+            addressId = createdAddress.address.id
+          } catch (error: any) {
+            console.error('Error creating address:', error)
+            alert(`Ошибка при сохранении адреса: ${error.response?.data?.message || error.message || 'Попробуйте еще раз'}`)
+            return
+          }
+        } else {
+          // Неавторизованный пользователь: перенаправляем на логин, потом можно будет открыть адрес
+          window.location.href = '/login'
           return
         }
-      } else {
-        // Адрес уже в БД, загружаем полные данные
-        console.log('Loading address data from database:', addressId)
-        const response = await addressApi.getById(addressId)
-        addressData = response.address
       }
 
-      // Открываем форму добавления отзыва с выбранным адресом
-      setSelectedApartment(null)
-      setSelectedAddressForReview({
-        id: addressId,
-        country: address.country,
-        city: address.city,
-        street: address.street || '',
-        building: address.building || '',
-        latitude: address.latitude,
-        longitude: address.longitude,
-        fromDatabase: true,
-      })
-      setShowAddReview(true)
+      // Переход на страницу со всеми отзывами по дому
+      router.push(`/address/${addressId}`)
     } catch (error: any) {
       console.error('Error handling address selection:', error)
       alert(`Ошибка при обработке адреса: ${error.response?.data?.message || error.message || 'Неизвестная ошибка'}`)

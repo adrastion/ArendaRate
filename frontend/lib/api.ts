@@ -140,6 +140,19 @@ export const addressApi = {
     return response.data
   },
 
+  getByIdWithReviews: async (id: string): Promise<{
+    address: Address
+    apartments: Array<Apartment & { reviews: Review[] }>
+  }> => {
+    const cacheKey = getCacheKey(`/addresses/${id}`, { withReviews: true })
+    const cached = getCached(cacheKey)
+    if (cached) return cached
+
+    const response = await api.get(`/addresses/${id}`, { params: { withReviews: 'true' } })
+    setCache(cacheKey, response.data)
+    return response.data
+  },
+
   create: async (data: {
     country: string
     city: string

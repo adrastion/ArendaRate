@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { reviewApi } from '@/lib/api'
+import { getScoreButtonClasses } from '@/lib/ratingColors'
 import { RatingCriterion, RATING_CRITERIA_LABELS, Review } from '@/types'
 
 const editReviewSchema = z.object({
@@ -91,32 +92,32 @@ export function EditReviewModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Редактировать отзыв</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Редактировать отзыв</h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
             >
               ✕
             </button>
           </div>
 
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
               ⚠️ После редактирования отзыв будет отправлен на модерацию
             </p>
           </div>
 
           {/* Оценки по критериям */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Оценка по критериям (1-5)</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Оценка по критериям (1-5)</h3>
             <div className="space-y-4">
               {Object.values(RatingCriterion).map((criterion) => (
                 <div key={criterion}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {RATING_CRITERIA_LABELS[criterion]}
                   </label>
                   <div className="flex space-x-2">
@@ -125,11 +126,8 @@ export function EditReviewModal({
                         key={score}
                         type="button"
                         onClick={() => setValue(`ratings.${criterion}`, score)}
-                        className={`w-12 h-12 rounded-lg border-2 ${
-                          ratings[criterion] === score
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'border-gray-300 hover:border-primary-400 bg-white text-gray-900'
-                        }`}
+                        className={getScoreButtonClasses(score, ratings[criterion] === score)}
+                        title={score === 1 ? 'Плохо' : score === 5 ? 'Отлично' : undefined}
                       >
                         {score}
                       </button>
@@ -147,16 +145,16 @@ export function EditReviewModal({
 
           {/* Комментарий */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Комментарий (до 100 символов)
             </label>
             <textarea
               {...register('comment')}
               maxLength={100}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
-            <div className="text-sm text-gray-500 mt-1">
+            <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {watch('comment')?.length || 0}/100
             </div>
             {errors.comment && (
@@ -167,24 +165,24 @@ export function EditReviewModal({
           {/* Период проживания */}
           <div className="mb-6 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Период проживания с
               </label>
               <input
                 type="date"
                 {...register('periodFrom')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
               />
               {errors.periodFrom && (
                 <p className="text-red-500 text-sm mt-1">{errors.periodFrom.message}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">по</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">по</label>
               <input
                 type="date"
                 {...register('periodTo')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
               />
               {errors.periodTo && (
                 <p className="text-red-500 text-sm mt-1">{errors.periodTo.message}</p>
@@ -196,7 +194,7 @@ export function EditReviewModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               Отмена
             </button>

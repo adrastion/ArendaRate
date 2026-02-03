@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslation } from '@/lib/useTranslation'
 import { ThemeToggle } from './ThemeToggle'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 export function Header() {
   const { user, logout, checkAuth, isLoading } = useAuthStore()
+  const { t } = useTranslation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -39,15 +42,16 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
-            <Link href="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
-              ArendaRate
+            <Link href="/" className="text-xl font-bold tracking-wide flex items-baseline">
+              <span className="text-gray-900 dark:text-white">Arenda</span>
+              <span className="text-primary-600 dark:text-primary-400">Rate</span>
             </Link>
             <Link
               href="/reviews"
               className="text-sm font-normal text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-              aria-label="Отзывы о жилье"
+              aria-label={t('header.reviews')}
             >
-              (Отзывы о жилье)
+              ({t('header.reviews')})
             </Link>
           </div>
 
@@ -58,7 +62,7 @@ export function Header() {
               href="/about"
               className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
             >
-              О нас
+              {t('header.about')}
             </Link>
             <a
               href="https://yoomoney.ru/to/4100119446457843"
@@ -66,7 +70,7 @@ export function Header() {
               rel="noopener noreferrer"
               className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
             >
-              Сказать спасибо
+              {t('header.thankYou')}
             </a>
             {user ? (
               <>
@@ -95,15 +99,16 @@ export function Header() {
                     href="/moderation"
                     className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Модерация
+                    {t('header.moderation')}
                   </Link>
                 ) : null}
                 <button
                   onClick={logout}
                   className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium"
                 >
-                  Выход
+                  {t('header.logout')}
                 </button>
+                <LanguageSwitcher />
               </>
             ) : (
               <>
@@ -111,14 +116,15 @@ export function Header() {
                   href="/login"
                   className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Вход
+                  {t('header.login')}
                 </Link>
                 <Link
                   href="/register"
                   className="bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >
-                  Регистрация
+                  {t('header.register')}
                 </Link>
+                <LanguageSwitcher />
               </>
             )}
           </nav>
@@ -151,8 +157,16 @@ export function Header() {
                   {/* Переключатель темы */}
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700 dark:text-gray-300">Тема</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{t('header.theme')}</span>
                       <ThemeToggle />
+                    </div>
+                  </div>
+
+                  {/* Язык */}
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{t('header.language')}</span>
+                      <LanguageSwitcher />
                     </div>
                   </div>
 
@@ -163,7 +177,7 @@ export function Header() {
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     role="menuitem"
                   >
-                    О нас
+                    {t('header.about')}
                   </Link>
 
                   {/* Сказать спасибо */}
@@ -175,7 +189,7 @@ export function Header() {
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     role="menuitem"
                   >
-                    Сказать спасибо
+                    {t('header.thankYou')}
                   </a>
 
                   {/* Разделитель */}
@@ -206,7 +220,7 @@ export function Header() {
                             </span>
                           )}
                         </span>
-                        <span>Профиль</span>
+                        <span>{t('header.profile')}</span>
                       </Link>
                       {user.role === 'MODERATOR' || user.role === 'ADMIN' ? (
                         <Link
@@ -215,7 +229,7 @@ export function Header() {
                           className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           role="menuitem"
                         >
-                          Модерация
+                          {t('header.moderation')}
                         </Link>
                       ) : null}
                       <button
@@ -226,7 +240,7 @@ export function Header() {
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         role="menuitem"
                       >
-                        Выход
+                        {t('header.logout')}
                       </button>
                     </>
                   ) : (
@@ -237,7 +251,7 @@ export function Header() {
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-center"
                         role="menuitem"
                       >
-                        Вход
+                        {t('header.login')}
                       </Link>
                       <Link
                         href="/register"
@@ -245,7 +259,7 @@ export function Header() {
                         className="block px-4 py-2 text-sm text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 rounded-md mx-2 my-1 text-center"
                         role="menuitem"
                       >
-                        Регистрация
+                        {t('header.register')}
                       </Link>
                     </>
                   )}

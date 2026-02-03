@@ -11,7 +11,7 @@ export default function UserAgreementPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Пользовательское соглашение</h1>
 
           <div className="prose prose-lg max-w-none dark:prose-invert text-gray-700 dark:text-gray-300">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Последнее обновление: 2026-01-29
             </p>
 

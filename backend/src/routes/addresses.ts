@@ -378,20 +378,73 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
   }
 });
 
-// Получение конкретного адреса
+// Получение конкретного адреса (опционально с полными отзывами по дому)
 router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const withReviews = req.query.withReviews === 'true';
+
+    if (withReviews) {
+      // Полная выборка: адрес + квартиры с отзывами (user, ratings, photos)
+      const address = await prisma.address.findUnique({
+        where: { id: req.params.id },
+        include: {
+          apartments: {
+            include: {
+              reviews: {
+                where: req.user ? undefined : { status: 'APPROVED' },
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      avatar: true,
+                    },
+                  },
+                  ratings: true,
+                  photos: true,
+                },
+                orderBy: { createdAt: 'desc' },
+              },
+            },
+          },
+        },
+      });
+
+      if (!address) {
+        return res.status(404).json({ message: 'Address not found' });
+      }
+
+      const apartments = address.apartments.map((apt) => ({
+        id: apt.id,
+        number: apt.number,
+        reviewsCount: apt.reviews.length,
+        reviews: apt.reviews,
+      }));
+
+      return res.json({
+        address: {
+          id: address.id,
+          country: address.country,
+          city: address.city,
+          street: address.street,
+          building: address.building,
+          latitude: address.latitude,
+          longitude: address.longitude,
+        },
+        apartments,
+      });
+    }
+
     const address = await prisma.address.findUnique({
       where: { id: req.params.id },
       include: {
         apartments: {
           include: {
             reviews: {
-              where: {
-                status: req.user ? 'APPROVED' : undefined,
-              },
-              take: 1,
-              orderBy: { createdAt: 'desc' },
+              where: req.user
+                ? undefined
+                : { status: 'APPROVED' },
+              select: { id: true },
             },
           },
         },

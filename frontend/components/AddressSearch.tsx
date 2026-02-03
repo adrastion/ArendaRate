@@ -89,7 +89,7 @@ export function AddressSearch({ onSelect }: AddressSearchProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Поиск по адресу (город, улица, дом)..."
-          className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-500"
+          className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -99,7 +99,7 @@ export function AddressSearch({ onSelect }: AddressSearchProps) {
       </div>
 
       {isOpen && results.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {results.map((address) => (
             <SearchResultItem
               key={address.id}
@@ -111,7 +111,7 @@ export function AddressSearch({ onSelect }: AddressSearchProps) {
       )}
 
       {isOpen && results.length === 0 && query.length >= 3 && !isLoading && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500">
+        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
           Ничего не найдено
         </div>
       )}
@@ -129,12 +129,12 @@ const SearchResultItem = React.memo(({
 }) => (
   <button
     onClick={() => onSelect(address)}
-    className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 text-gray-900"
+    className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 text-gray-900 dark:text-gray-100"
   >
-    <div className="font-medium text-gray-900">
+    <div className="font-medium text-gray-900 dark:text-gray-100">
       {address.formattedAddress || `${address.city}, ${address.street}, ${address.building}`}
     </div>
-    <div className="text-sm text-gray-500">
+    <div className="text-sm text-gray-500 dark:text-gray-400">
       {address.apartmentsCount > 0 ? (
         <>
           {address.apartmentsCount} {address.apartmentsCount === 1 ? 'квартира' : address.apartmentsCount < 5 ? 'квартиры' : 'квартир'}
@@ -150,7 +150,7 @@ const SearchResultItem = React.memo(({
           )}
         </>
       ) : (
-        <span className="text-gray-400">Нет отзывов</span>
+        <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
       )}
     </div>
   </button>

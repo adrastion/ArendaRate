@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { apartmentApi, moderationApi } from '@/lib/api'
+import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Apartment, Review } from '@/types'
 import { RATING_CRITERIA_LABELS, RatingCriterion } from '@/types'
 import { format } from 'date-fns'
@@ -82,12 +83,12 @@ export default function ApartmentPage() {
 
   if (!apartment) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Квартира не найдена</h1>
+          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Квартира не найдена</h1>
           <button
             onClick={() => router.push('/')}
-            className="text-primary-600 hover:text-primary-700"
+            className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
           >
             Вернуться на карту
           </button>
@@ -97,40 +98,40 @@ export default function ApartmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h1 className="text-2xl font-bold mb-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+          <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">
             Квартира {apartment.number}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             {apartment.address.city}, {apartment.address.street},{' '}
             {apartment.address.building}
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             {apartment.reviews.length > 0 ? (
               <>
                 {apartment.reviews.length}{' '}
                 {apartment.reviews.length === 1 ? 'отзыв' : apartment.reviews.length < 5 ? 'отзыва' : 'отзывов'}
               </>
             ) : (
-              <span className="text-gray-400">Нет отзывов</span>
+              <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
             )}
           </p>
         </div>
 
         <div className="space-y-4">
           {apartment.reviews.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <p className="text-gray-500 mb-2">Пока нет отзывов об этой квартире</p>
-              <p className="text-sm text-gray-400">Нет отзывов</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+              <p className="text-gray-500 dark:text-gray-400 mb-2">Пока нет отзывов об этой квартире</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">Нет отзывов</p>
             </div>
           ) : (
             apartment.reviews.map((review) => (
               <div
                 key={review.id}
-                className="bg-white rounded-lg shadow-md p-6"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
@@ -143,13 +144,13 @@ export default function ApartmentPage() {
                         decoding="async"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
+                      <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 font-semibold">
                         {review.user.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div>
-                      <div className="font-semibold">{review.user.name}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="font-semibold text-gray-900 dark:text-gray-100">{review.user.name}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         {format(new Date(review.periodFrom), 'dd.MM.yyyy')} -{' '}
                         {format(new Date(review.periodTo), 'dd.MM.yyyy')}
                       </div>
@@ -158,10 +159,10 @@ export default function ApartmentPage() {
                   <div className="text-right">
                     <div className="flex items-center space-x-2">
                       <div>
-                        <div className="text-2xl font-bold text-primary-600">
+                        <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                           {review.averageRating.toFixed(1)}
                         </div>
-                        <div className="text-xs text-gray-500">из 5</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">из 5</div>
                       </div>
                       {isModerator && (
                         <button
@@ -177,13 +178,13 @@ export default function ApartmentPage() {
                   </div>
                 </div>
 
-                <p className="mb-4">{review.comment}</p>
+                <p className="mb-4 text-gray-900 dark:text-gray-100">{review.comment}</p>
 
                 {review.ratings.length > 0 && (
                   <div className="mb-4">
                     <button
                       onClick={() => toggleReviewExpansion(review.id)}
-                      className="text-sm text-primary-600 hover:text-primary-700 mb-2"
+                      className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 mb-2"
                     >
                       {expandedReviews.has(review.id)
                         ? 'Скрыть детальные оценки'
@@ -196,18 +197,15 @@ export default function ApartmentPage() {
                             key={rating.id}
                             className="flex justify-between items-center text-sm"
                           >
-                            <span className="text-gray-600">
+                            <span className="text-gray-600 dark:text-gray-300">
                               {RATING_CRITERIA_LABELS[rating.criterion]}
                             </span>
                             <div className="flex space-x-1">
                               {[1, 2, 3, 4, 5].map((score) => (
                                 <span
                                   key={score}
-                                  className={`w-6 h-6 rounded flex items-center justify-center text-xs ${
-                                    score <= rating.score
-                                      ? 'bg-primary-600 text-white'
-                                      : 'bg-gray-200 text-gray-500'
-                                  }`}
+                                  className={getScoreViewClasses(score, score <= rating.score)}
+                                  title={score === 1 ? 'Плохо' : score === 5 ? 'Отлично' : undefined}
                                 >
                                   {score}
                                 </span>
@@ -238,7 +236,7 @@ export default function ApartmentPage() {
                       </div>
                     )}
 
-                <div className="text-xs text-gray-400 mt-4">
+                <div className="text-xs text-gray-400 dark:text-gray-500 mt-4">
                   {format(new Date(review.createdAt), 'dd.MM.yyyy')}
                 </div>
               </div>
