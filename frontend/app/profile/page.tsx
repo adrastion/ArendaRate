@@ -27,15 +27,19 @@ export default function ProfilePage() {
   const [profileSuccess, setProfileSuccess] = useState('')
 
   useEffect(() => {
+    let cancelled = false
     checkAuth().then(() => {
-      if (!user) {
+      if (cancelled) return
+      const currentUser = useAuthStore.getState().user
+      if (!currentUser) {
         router.push('/login')
         return
       }
-      setEmailDraft(user.email || '')
+      setEmailDraft(currentUser.email || '')
       loadReviews()
     })
-  }, [user])
+    return () => { cancelled = true }
+  }, [checkAuth])
 
   const saveEmail = async () => {
     setProfileError('')
