@@ -254,7 +254,7 @@ export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DE
         attributionControl={false}
       >
         <SetView center={center} zoom={zoom} />
-        <LayersControl position="topright" collapsed={true}>
+        <LayersControl position="bottomleft" collapsed={true}>
           <LayersControl.BaseLayer checked name="Стандартная карта">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

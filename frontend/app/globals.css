@@ -110,16 +110,22 @@ html:not(.dark) .logo-rate {
   filter: invert(1);
 }
 
-/* Контейнер для контролов в левом нижнем углу (кнопки масштабирования) */
+/* Контейнеры контролов карты: fixed + высокий z-index, чтобы быть поверх кнопки «Добавить отзыв» */
+/* Кнопки масштаба (слева) — выше; переключатель слоёв и атрибуция (справа) — под ними */
 .leaflet-bottom.leaflet-left {
-  margin-bottom: 20px !important;
-  margin-left: 10px !important;
+  position: fixed !important;
+  left: 10px !important;
+  bottom: 20px !important;
+  margin: 0 !important;
+  z-index: 10000 !important;
 }
 
-/* Контейнер для контролов в правом нижнем углу (переключатель слоев) */
 .leaflet-bottom.leaflet-right {
-  margin-bottom: 20px !important;
-  margin-right: 10px !important;
+  position: fixed !important;
+  right: 10px !important;
+  bottom: 20px !important;
+  margin: 0 !important;
+  z-index: 9998 !important;
 }
 
 /* Скрытие всех флагов в атрибуции карты */
