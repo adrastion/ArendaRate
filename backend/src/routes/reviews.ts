@@ -4,6 +4,7 @@ import { RatingCriterion, ReviewStatus } from '@prisma/client';
 import { authenticate, requireRole } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
+import { sendReviewNotification } from '../services/telegram';
 
 const router = express.Router();
 
@@ -94,6 +95,11 @@ router.post(
             },
           },
         },
+      });
+
+      // Уведомление модераторов в Telegram (если настроен бот)
+      sendReviewNotification(review).catch((err) => {
+        console.error('Telegram notification failed:', err);
       });
 
       res.status(201).json({ review });

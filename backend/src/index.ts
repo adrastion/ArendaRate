@@ -8,6 +8,7 @@ import addressRoutes from './routes/addresses';
 import apartmentRoutes from './routes/apartments';
 import reviewRoutes from './routes/reviews';
 import moderationRoutes from './routes/moderation';
+import telegramWebhookRoutes from './routes/telegramWebhook';
 import uploadRoutes from './routes/upload';
 import userRoutes from './routes/user';
 
@@ -34,6 +35,7 @@ app.use('/api/addresses', addressRoutes);
 app.use('/api/apartments', apartmentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/moderation', moderationRoutes);
+app.use('/api/telegram-webhook', telegramWebhookRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/user', userRoutes);
 
