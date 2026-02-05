@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import passport from './config/passport';
 import { errorHandler } from './middleware/errorHandler';
 import { sendDailyDigest } from './services/dailyDigest';
+import { checkServerAlerts } from './services/serverAlerts';
 import authRoutes from './routes/auth';
 import addressRoutes from './routes/addresses';
 import apartmentRoutes from './routes/apartments';
@@ -56,6 +57,13 @@ app.listen(PORT, () => {
   cron.schedule('0 19 * * *', () => {
     sendDailyDigest().catch((err) => {
       console.error('Daily digest failed:', err);
+    });
+  });
+
+  // Проверка нагрузки: алерты в Telegram каждые 5 минут (с cooldown)
+  cron.schedule('*/5 * * * *', () => {
+    checkServerAlerts().catch((err) => {
+      console.error('Server alerts check failed:', err);
     });
   });
 });

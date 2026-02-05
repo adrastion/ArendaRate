@@ -22,6 +22,37 @@ function formatUptime(seconds: number): string {
   return parts.join(' ');
 }
 
+export interface ServerStatsRaw {
+  cpuPercent: number;
+  memPercent: number;
+  loadAvg: number;
+  diskPercent: number;
+}
+
+/**
+ * Собирает сырые метрики для проверки порогов алертов.
+ */
+export async function getServerStatsRaw(): Promise<ServerStatsRaw | null> {
+  try {
+    const [load, mem, fs] = await Promise.all([
+      si.currentLoad(),
+      si.mem(),
+      si.fsSize().then((mounts) => mounts.find((m) => m.mount === '/') || mounts[0]),
+    ]);
+    const memUsedBytes = mem.total && mem.available != null ? mem.total - mem.available : mem.used ?? 0;
+    const memPercent = mem.total && mem.total > 0 ? (memUsedBytes / mem.total) * 100 : 0;
+    const diskPercent = fs && fs.size > 0 ? (fs.used / fs.size) * 100 : 0;
+    return {
+      cpuPercent: load.currentLoad ?? 0,
+      memPercent,
+      loadAvg: load.avgLoad ?? 0,
+      diskPercent,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Собирает текущую нагрузку и возвращает текст для Telegram (HTML).
  */
