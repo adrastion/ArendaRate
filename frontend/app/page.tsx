@@ -2,8 +2,11 @@
 
 import Link from 'next/link'
 import { Header } from '@/components/Header'
+import { useAuthStore } from '@/store/authStore'
 
 export default function LandingPage() {
+  const { user } = useAuthStore()
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -32,12 +35,14 @@ export default function LandingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </Link>
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-primary-600 dark:text-primary-400 bg-white dark:bg-gray-800 border-2 border-primary-500/50 hover:border-primary-600 dark:hover:border-primary-400 rounded-xl transition-colors"
-              >
-                Зарегистрироваться
-              </Link>
+              {!user && (
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-primary-600 dark:text-primary-400 bg-white dark:bg-gray-800 border-2 border-primary-500/50 hover:border-primary-600 dark:hover:border-primary-400 rounded-xl transition-colors"
+                >
+                  Зарегистрироваться
+                </Link>
+              )}
             </div>
           </div>
         </div>
