@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { ReviewStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { sendTelegramMessage } from '../services/telegram';
+import { getServerStatsText } from '../services/serverStats';
 
 const router = express.Router();
 
@@ -129,9 +130,12 @@ router.post('/', async (req: Request, res: Response) => {
           `📝 Отзывов на карте: <b>${onMapCount}</b>`,
           `⏳ Отзывов на модерации: <b>${pendingCount}</b>`,
           '',
-          'Команды: /users или /stats — эта сводка.',
+          'Команды: /users, /stats, /server — сводка и нагрузка.',
         ].join('\n');
         await sendTelegramMessage(chatId.toString(), reply);
+      } else if (text === '/server' || text === '/load') {
+        const serverText = await getServerStatsText();
+        await sendTelegramMessage(chatId.toString(), serverText);
       }
       return;
     }

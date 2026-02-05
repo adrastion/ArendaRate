@@ -29,6 +29,7 @@
     "passport-jwt": "^4.0.1",
     "passport-vkontakte": "^0.5.0",
     "passport-yandex": "^0.0.5",
+    "systeminformation": "^5.30.7",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
