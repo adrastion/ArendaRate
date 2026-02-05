@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { apartmentApi, moderationApi } from '@/lib/api'
+import { apartmentApi, moderationApi, getUploadUrl } from '@/lib/api'
 import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Apartment, Review } from '@/types'
 import { RatingCriterion } from '@/types'
@@ -220,20 +220,25 @@ export default function ApartmentPage() {
                   </div>
                 )}
 
-                    {review.photos.length > 0 && (
+                    {(review.photos?.length ?? 0) > 0 && (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-                        {review.photos.map((photo) => (
-                          <img
+                        {review.photos?.map((photo) => (
+                          <a
                             key={photo.id}
-                            src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                            alt={t('apartment.photoAlt')}
-                            className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                            loading="lazy"
-                            decoding="async"
-                            onClick={() => {
-                              // TODO: Открыть полноэкранное просмотр
-                            }}
-                          />
+                            href={getUploadUrl(photo.url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={getUploadUrl(photo.url)}
+                              alt={t('apartment.photoAlt')}
+                              className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </a>
                         ))}
                       </div>
                     )}

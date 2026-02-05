@@ -3,6 +3,13 @@ import { User, Review, Apartment, Address, AddressSearchResult } from '@/types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
+/** URL для загрузок (uploads) — без /api, т.к. статика отдаётся с корня бэкенда */
+export function getUploadUrl(path: string): string {
+  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+  const baseForUploads = base.replace(/\/api\/?$/, '')
+  return `${baseForUploads}${path.startsWith('/') ? path : `/${path}`}`
+}
+
 // Убираем /api из baseURL, так как NEXT_PUBLIC_API_URL уже содержит полный путь к API
 // Для localhost: NEXT_PUBLIC_API_URL=http://localhost:3001 (без /api)
 // Для production: NEXT_PUBLIC_API_URL=https://arendrate.ru/api (с /api)

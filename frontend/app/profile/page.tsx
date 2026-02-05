@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { reviewApi, userApi } from '@/lib/api'
+import { reviewApi, userApi, getUploadUrl } from '@/lib/api'
 import { Review } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
@@ -286,12 +286,12 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {review.photos.length > 0 && (
+                {(review.photos?.length ?? 0) > 0 && (
                   <div className="grid grid-cols-4 gap-2">
-                    {review.photos.map((photo) => (
+                    {review.photos?.map((photo) => (
                       <a
                         key={photo.id}
-                        href={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
+                        href={getUploadUrl(photo.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block"
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
+                          src={getUploadUrl(photo.url)}
                           alt={t('profile.photo')}
                           className="w-full h-24 object-cover rounded-lg"
                           loading="lazy"

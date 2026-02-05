@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { moderationApi } from '@/lib/api'
+import { moderationApi, getUploadUrl } from '@/lib/api'
 import { Review } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
@@ -99,9 +99,9 @@ export default function ModerationPage() {
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Модерация отзывов</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('moderation.title')}</h1>
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Показаны отзывы на модерации
+            {t('moderation.subtitle')}
           </div>
         </div>
 
@@ -167,15 +167,26 @@ export default function ModerationPage() {
                   </div>
                 )}
 
-                {review.photos.length > 0 && (
+                {(review.photos?.length ?? 0) > 0 && (
                   <div className="grid grid-cols-4 gap-2 mb-4">
-                    {review.photos.map((photo) => (
-                      <img
+                    {review.photos?.map((photo) => (
+                      <a
                         key={photo.id}
-                        src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                        alt={t('profile.photo')}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
+                        href={getUploadUrl(photo.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                        title={t('profile.openPhoto')}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getUploadUrl(photo.url)}
+                          alt={t('profile.photo')}
+                          className="w-full h-24 object-cover rounded-lg"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </a>
                     ))}
                   </div>
                 )}

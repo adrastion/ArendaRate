@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { addressApi, moderationApi } from '@/lib/api'
+import { addressApi, moderationApi, getUploadUrl } from '@/lib/api'
 import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Address, Apartment, Review } from '@/types'
 import { RatingCriterion } from '@/types'
@@ -248,14 +248,22 @@ export default function AddressPage() {
                         {review.photos?.length > 0 && (
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
                             {review.photos.map((photo) => (
-                              <img
+                              <a
                                 key={photo.id}
-                                src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                                alt={t('address.photoAlt')}
-                                className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                                loading="lazy"
-                                decoding="async"
-                              />
+                                href={getUploadUrl(photo.url)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={getUploadUrl(photo.url)}
+                                  alt={t('address.photoAlt')}
+                                  className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              </a>
                             ))}
                           </div>
                         )}
