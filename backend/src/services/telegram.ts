@@ -32,13 +32,25 @@ export interface ReviewForNotification {
   };
 }
 
+/** Тексты кнопок Reply-клавиатуры (должны совпадать с обработкой в вебхуке) */
+export const REPLY_BTN_STATS = '📊 Статистика';
+export const REPLY_BTN_SERVER = '🖥 Нагрузка сервера';
+
+/** Reply-клавиатура с кнопками для бота модерации */
+export const REPLY_KEYBOARD = {
+  keyboard: [[REPLY_BTN_STATS, REPLY_BTN_SERVER]],
+  resize_keyboard: true,
+} as const;
+
 /**
- * Отправить сообщение в чат (без парсинга режима).
+ * Отправить сообщение в чат.
+ * replyMarkup — inline-кнопки под сообщением; replyKeyboard — показывать ли постоянную клавиатуру с кнопками.
  */
 export async function sendTelegramMessage(
   chatId: string,
   text: string,
-  replyMarkup?: { inline_keyboard: Array<Array<{ text: string; callback_data: string }>> }
+  replyMarkup?: { inline_keyboard: Array<Array<{ text: string; callback_data: string }>> },
+  replyKeyboard?: boolean
 ): Promise<boolean> {
   const token = getBotToken();
   if (!token) return false;
@@ -50,6 +62,7 @@ export async function sendTelegramMessage(
     disable_web_page_preview: true,
   };
   if (replyMarkup) body.reply_markup = replyMarkup;
+  else if (replyKeyboard) body.reply_markup = REPLY_KEYBOARD;
 
   try {
     const res = await fetch(`${TELEGRAM_API}${token}/sendMessage`, {

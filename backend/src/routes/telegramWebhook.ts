@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { ReviewStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
-import { sendTelegramMessage } from '../services/telegram';
+import { sendTelegramMessage, REPLY_BTN_STATS, REPLY_BTN_SERVER } from '../services/telegram';
 import { getServerStatsText } from '../services/serverStats';
 
 const router = express.Router();
@@ -117,7 +117,10 @@ router.post('/', async (req: Request, res: Response) => {
         return;
       }
 
-      if (text === '/users' || text === '/stats' || text === '/start') {
+      const isStats = text === '/users' || text === '/stats' || text === '/start' || text === REPLY_BTN_STATS;
+      const isServer = text === '/server' || text === '/load' || text === REPLY_BTN_SERVER;
+
+      if (isStats) {
         const [usersCount, pendingCount, onMapCount] = await Promise.all([
           prisma.user.count(),
           prisma.review.count({ where: { status: ReviewStatus.PENDING } }),
@@ -130,12 +133,12 @@ router.post('/', async (req: Request, res: Response) => {
           `📝 Отзывов на карте: <b>${onMapCount}</b>`,
           `⏳ Отзывов на модерации: <b>${pendingCount}</b>`,
           '',
-          'Команды: /users, /stats, /server — сводка и нагрузка.',
+          'Можно нажать кнопку ниже или отправить /server для нагрузки сервера.',
         ].join('\n');
-        await sendTelegramMessage(chatId.toString(), reply);
-      } else if (text === '/server' || text === '/load') {
+        await sendTelegramMessage(chatId.toString(), reply, undefined, true);
+      } else if (isServer) {
         const serverText = await getServerStatsText();
-        await sendTelegramMessage(chatId.toString(), serverText);
+        await sendTelegramMessage(chatId.toString(), serverText, undefined, true);
       }
       return;
     }
