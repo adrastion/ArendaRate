@@ -107,6 +107,12 @@ export const authApi = {
     const response = await api.get('/auth/me')
     return response.data
   },
+
+  /** VK ID One Tap: обмен access_token на JWT */
+  vkTokenLogin: async (accessToken: string) => {
+    const response = await api.post('/auth/vk/token', { access_token: accessToken })
+    return response.data
+  },
 }
 
 export const userApi = {

@@ -110,7 +110,7 @@ router.get(
   }
 );
 
-// OAuth VK ID
+// OAuth VK ID (классический redirect flow — оставлен для совместимости)
 router.get('/vk', passport.authenticate('vkid'));
 
 router.get(
@@ -127,6 +127,64 @@ router.get(
       }
       res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
     })(req, res, next);
+  }
+);
+
+// VK ID One Tap — обмен access_token на JWT (callback flow)
+router.post(
+  '/vk/token',
+  [body('access_token').notEmpty().withMessage('access_token is required')],
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const accessToken = req.body.access_token as string;
+      const clientId = process.env.VK_CLIENT_ID;
+
+      if (!clientId) {
+        return res.status(500).json({ message: 'VK OAuth is not configured' });
+      }
+
+      // Проверка токена и получение данных пользователя через VK ID API
+      const formData = new URLSearchParams();
+      formData.append('client_id', clientId);
+      formData.append('access_token', accessToken);
+
+      const vkResponse = await fetch('https://id.vk.ru/oauth2/user_info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString(),
+      });
+
+      if (!vkResponse.ok) {
+        const errData = await vkResponse.json().catch(() => ({}));
+        console.error('VK user_info error:', vkResponse.status, errData);
+        return res.status(401).json({ message: 'Invalid or expired VK token' });
+      }
+
+      const vkUser = (await vkResponse.json()) as { user?: { user_id: string; first_name?: string; last_name?: string; email?: string; avatar?: string } };
+      const userData = vkUser.user;
+
+      if (!userData?.user_id) {
+        return res.status(401).json({ message: 'Invalid VK user data' });
+      }
+
+      const name = [userData.first_name, userData.last_name].filter(Boolean).join(' ').trim() || 'User';
+      const { user, token } = await authService.findOrCreateOAuthUser(
+        'vk',
+        String(userData.user_id),
+        userData.email || null,
+        name,
+        userData.avatar || null
+      );
+
+      res.json({ user, token });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 

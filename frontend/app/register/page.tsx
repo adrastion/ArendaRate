@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
+import { VKOneTap } from '@/components/VKOneTap'
 
 export default function RegisterPage() {
   const { t } = useTranslation()
@@ -21,9 +22,8 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
 
-  const handleOAuth = (provider: 'yandex' | 'vk') => {
+  const handleOAuth = (provider: 'yandex') => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    // Если apiUrl уже содержит /api, не добавляем его снова
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`
     window.location.href = `${baseUrl}/auth/${provider}`
   }
@@ -222,13 +222,15 @@ export default function RegisterPage() {
             >
               {t('register.yandex')}
             </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth('vk')}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-            >
-              {t('register.vk')}
-            </button>
+            <div className="flex justify-center">
+              <VKOneTap
+                contentId="SIGN_UP"
+                onError={(err) => {
+                  console.error('VK One Tap error:', err)
+                  setError(t('register.oauthError'))
+                }}
+              />
+            </div>
           </div>
 
           <div className="text-center">

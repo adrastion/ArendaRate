@@ -253,6 +253,7 @@ export const translations = {
       errorPasswordMatch: 'Пароли не совпадают',
       errorAge: 'Вы должны быть старше 18 лет',
       error: 'Ошибка регистрации',
+      oauthError: 'Ошибка регистрации через соцсеть. Попробуйте ещё раз.',
     },
     profile: {
       myProfile: 'Мой профиль',
@@ -618,6 +619,7 @@ export const translations = {
       errorPasswordMatch: 'Passwords do not match',
       errorAge: 'You must be 18 or older',
       error: 'Registration error',
+      oauthError: 'Social sign-up failed. Please try again.',
     },
     profile: {
       myProfile: 'My profile',

@@ -57,5 +57,12 @@ export const auth = {
       return null
     }
   },
+
+  /** VK ID One Tap: вход по access_token от VK */
+  vkTokenLogin: async (accessToken: string) => {
+    const response = await authApi.vkTokenLogin(accessToken)
+    auth.setToken(response.token)
+    return response.user
+  },
 }
 
