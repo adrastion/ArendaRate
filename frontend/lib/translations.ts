@@ -1,6 +1,7 @@
 export const translations = {
   ru: {
     header: {
+      map: 'Карта',
       reviews: 'Отзывы о жилье',
       about: 'О нас',
       thankYou: 'Сказать спасибо',
@@ -27,6 +28,7 @@ export const translations = {
   },
   en: {
     header: {
+      map: 'Map',
       reviews: 'Housing reviews',
       about: 'About',
       thankYou: 'Say thanks',

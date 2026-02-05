@@ -64,6 +64,11 @@ button {
   color: inherit;
 }
 
+/* Логотип: Rate — голубой (primary-400) в светлой теме, иначе наследует чёрный от body */
+html:not(.dark) .logo-rate {
+  color: #38bdf8 !important;
+}
+
 /* Leaflet CSS - базовые стили */
 .leaflet-container {
   height: 100%;

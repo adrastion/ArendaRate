@@ -44,7 +44,7 @@ export function Header() {
           <div className="flex items-center gap-2">
             <Link href="/" className="text-xl font-bold tracking-wide flex items-baseline">
               <span className="text-gray-900 dark:text-white">Arenda</span>
-              <span className="text-primary-600 dark:text-primary-400">Rate</span>
+              <span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
             </Link>
             <Link
               href="/reviews"
@@ -58,6 +58,12 @@ export function Header() {
           {/* Десктопное меню */}
           <nav className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
+            <Link
+              href="/map"
+              className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              {t('header.map')}
+            </Link>
             <Link
               href="/about"
               className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
@@ -170,6 +176,15 @@ export function Header() {
                     </div>
                   </div>
 
+                  {/* Карта */}
+                  <Link
+                    href="/map"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    role="menuitem"
+                  >
+                    {t('header.map')}
+                  </Link>
                   {/* О нас */}
                   <Link
                     href="/about"

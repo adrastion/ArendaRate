@@ -26,7 +26,7 @@ export default function AboutPage() {
               <div className="text-center mb-8">
                 <div className="text-4xl md:text-5xl font-extrabold tracking-wide text-gray-900 dark:text-white mb-3">
                   <span className="text-gray-900 dark:text-white">Arenda</span>
-                  <span className="text-primary-600 dark:text-primary-400">Rate</span>
+                  <span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
                 </div>
                 <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                   Устав компании ArendaRate
