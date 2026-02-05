@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'r
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { addressApi } from '@/lib/api'
+import { pluralApartments, pluralReviews } from '@/lib/pluralize'
 
 // Инициализация иконок Leaflet (исправление проблемы с отображением маркеров)
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -328,9 +329,9 @@ export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DE
           >
             <Popup>
               <div style={{ padding: '10px' }}>
-                <strong>{marker.apartmentsCount} квартир</strong>
+                <strong>{marker.apartmentsCount} {pluralApartments(marker.apartmentsCount)}</strong>
                 <br />
-                {marker.reviewsCount} отзывов
+                {marker.reviewsCount} {pluralReviews(marker.reviewsCount)}
               </div>
             </Popup>
           </Marker>

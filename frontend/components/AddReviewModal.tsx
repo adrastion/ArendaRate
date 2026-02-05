@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { reviewApi, uploadApi, addressApi } from '@/lib/api'
 import { getScoreButtonClasses } from '@/lib/ratingColors'
+import { pluralReviews } from '@/lib/pluralize'
 import { RatingCriterion, RATING_CRITERIA_LABELS } from '@/types'
 import { format } from 'date-fns'
 
@@ -277,7 +278,7 @@ export function AddReviewModal({
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                         {address.reviewsCount !== undefined && address.reviewsCount > 0 ? (
-                          <>{address.reviewsCount} отзывов</>
+                          <>{address.reviewsCount} {pluralReviews(address.reviewsCount)}</>
                         ) : (
                           <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
                         )}
