@@ -5,9 +5,53 @@ import { Providers } from './providers'
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] })
 
+const siteUrl = 'https://arendarate.ru'
+
 export const metadata: Metadata = {
-  title: 'ArendaRate - Отзывы об аренде жилья',
-  description: 'Платформа для отзывов об аренде жилья с интерактивной картой',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'ArendaRate — Отзывы об аренде жилья',
+    template: '%s | ArendaRate',
+  },
+  description:
+    'Честная аренда начинается здесь. Читай отзывы арендаторов, смотри оценки по адресам на карте. Платформа отзывов об аренде жилья с интерактивной картой.',
+  keywords: [
+    'отзывы об аренде',
+    'аренда жилья',
+    'отзывы о квартирах',
+    'аренда квартир',
+    'отзывы арендаторов',
+    'карта отзывов',
+    'снять квартиру',
+    'ArendaRate',
+  ],
+  authors: [{ name: 'ArendaRate', url: siteUrl }],
+  creator: 'ArendaRate',
+  openGraph: {
+    type: 'website',
+    locale: 'ru_RU',
+    url: siteUrl,
+    siteName: 'ArendaRate',
+    title: 'ArendaRate — Отзывы об аренде жилья',
+    description:
+      'Честная аренда начинается здесь. Читай отзывы арендаторов, смотри оценки по адресам на карте.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ArendaRate — Отзывы об аренде жилья',
+    description: 'Платформа отзывов об аренде жилья с интерактивной картой.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
 }
 
 export default function RootLayout({

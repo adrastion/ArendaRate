@@ -1,9 +1,16 @@
+# ArendaRate — правила для поисковых роботов
 User-agent: *
 Allow: /
+Allow: /map
+Allow: /reviews
+Allow: /about
+Allow: /user-agreement
 
 Disallow: /profile
 Disallow: /moderation
+Disallow: /auth
 
-Sitemap: https://arendarate.ru/sitemap.xml
+# Яндекс: главное зеркало сайта (если используется)
 Host: arendarate.ru
 
+Sitemap: https://arendarate.ru/sitemap.xml
