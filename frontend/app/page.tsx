@@ -189,8 +189,9 @@ export default function LandingPage() {
       <footer className="py-8 bg-gray-100 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-            <span className="font-bold text-gray-900 dark:text-white">Arenda</span>
-            <span className="logo-rate font-bold text-primary-400 dark:text-primary-400">Rate</span>
+            <span className="whitespace-nowrap font-bold">
+              <span className="text-gray-900 dark:text-white">Arenda</span><span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
+            </span>
           </div>
           <nav className="flex items-center gap-6 text-sm">
             <Link href="/map" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">

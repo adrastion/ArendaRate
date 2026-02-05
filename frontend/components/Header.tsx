@@ -45,8 +45,9 @@ export function Header() {
             <Link href="/" className="text-xl font-bold tracking-wide flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icon.png" alt="" className="w-8 h-8 flex-shrink-0" width={32} height={32} />
-              <span className="text-gray-900 dark:text-white">Arenda</span>
-              <span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
+              <span className="whitespace-nowrap">
+                <span className="text-gray-900 dark:text-white">Arenda</span><span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
+              </span>
             </Link>
             <Link
               href="/reviews"
