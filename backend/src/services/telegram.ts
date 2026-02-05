@@ -10,7 +10,7 @@ function getBotToken(): string | null {
   return token && token !== 'your-telegram-bot-token' ? token : null;
 }
 
-function getNotifyChatIds(): string[] {
+export function getNotifyChatIds(): string[] {
   const raw = process.env.TELEGRAM_NOTIFY_CHAT_IDS || process.env.TELEGRAM_ALLOWED_USER_IDS || '';
   if (!raw.trim()) return [];
   return raw.split(',').map((id) => id.trim()).filter(Boolean);

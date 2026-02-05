@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import cron from 'node-cron';
 import dotenv from 'dotenv';
 import passport from './config/passport';
 import { errorHandler } from './middleware/errorHandler';
+import { sendDailyDigest } from './services/dailyDigest';
 import authRoutes from './routes/auth';
 import addressRoutes from './routes/addresses';
 import apartmentRoutes from './routes/apartments';
@@ -49,5 +51,12 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
+
+  // Ежедневная сводка в Telegram в 19:00 серверного времени
+  cron.schedule('0 19 * * *', () => {
+    sendDailyDigest().catch((err) => {
+      console.error('Daily digest failed:', err);
+    });
+  });
 });
 
