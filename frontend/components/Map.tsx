@@ -6,7 +6,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'r
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { addressApi } from '@/lib/api'
-import { pluralApartments, pluralReviews } from '@/lib/pluralize'
+import { pluralApartmentsLocale, pluralReviewsLocale } from '@/lib/pluralize'
+import { useTranslation } from '@/lib/useTranslation'
 
 // Инициализация иконок Leaflet (исправление проблемы с отображением маркеров)
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -160,6 +161,7 @@ const userLocationIcon = L.divIcon({
 })
 
 export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DEFAULT_ZOOM, userLocation = null }: MapProps) {
+  const { t, locale } = useTranslation()
   const mapRef = useRef<L.Map | null>(null)
   const isInitialFit = useRef<boolean>(false)
 
@@ -256,31 +258,31 @@ export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DE
       >
         <SetView center={center} zoom={zoom} />
         <LayersControl position="bottomleft" collapsed={true}>
-          <LayersControl.BaseLayer checked name="Стандартная карта">
+          <LayersControl.BaseLayer checked name={t('map.layerStandard')}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Спутник">
+          <LayersControl.BaseLayer name={t('map.layerSatellite')}>
             <TileLayer
               attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             />
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Светлая карта">
+          <LayersControl.BaseLayer name={t('map.layerLight')}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             />
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Темная карта">
+          <LayersControl.BaseLayer name={t('map.layerDark')}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Топографическая карта">
+          <LayersControl.BaseLayer name={t('map.layerTopo')}>
             <TileLayer
               attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
               url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
@@ -311,7 +313,7 @@ export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DE
           >
             <Popup>
               <div style={{ padding: '8px', textAlign: 'center' }}>
-                <strong>Вы здесь</strong>
+                <strong>{t('map.youAreHere')}</strong>
               </div>
             </Popup>
           </Marker>
@@ -329,9 +331,9 @@ export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DE
           >
             <Popup>
               <div style={{ padding: '10px' }}>
-                <strong>{marker.apartmentsCount} {pluralApartments(marker.apartmentsCount)}</strong>
+                <strong>{marker.apartmentsCount} {pluralApartmentsLocale(marker.apartmentsCount, locale)}</strong>
                 <br />
-                {marker.reviewsCount} {pluralReviews(marker.reviewsCount)}
+                {marker.reviewsCount} {pluralReviewsLocale(marker.reviewsCount, locale)}
               </div>
             </Popup>
           </Marker>

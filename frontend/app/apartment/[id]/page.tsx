@@ -5,12 +5,15 @@ import { useParams, useRouter } from 'next/navigation'
 import { apartmentApi, moderationApi } from '@/lib/api'
 import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Apartment, Review } from '@/types'
-import { RATING_CRITERIA_LABELS, RatingCriterion } from '@/types'
+import { RatingCriterion } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslation } from '@/lib/useTranslation'
+import { pluralReviewsLocale } from '@/lib/pluralize'
 
 export default function ApartmentPage() {
+  const { t, locale } = useTranslation()
   const params = useParams()
   const router = useRouter()
   const { user, checkAuth } = useAuthStore()
@@ -48,7 +51,7 @@ export default function ApartmentPage() {
   }
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (!confirm('Вы уверены, что хотите удалить этот отзыв? Это действие нельзя отменить.')) {
+    if (!confirm(t('apartment.deleteConfirm'))) {
       return
     }
 
@@ -62,10 +65,10 @@ export default function ApartmentPage() {
           reviews: apartment.reviews.filter((r) => r.id !== reviewId),
         })
       }
-      alert('Отзыв успешно удален')
+      alert(t('apartment.deleteSuccess'))
     } catch (error: any) {
       console.error('Error deleting review:', error)
-      alert(`Ошибка при удалении отзыва: ${error.response?.data?.message || error.message || 'Попробуйте еще раз'}`)
+      alert(`${t('apartment.deleteError')}: ${error.response?.data?.message || error.message || ''}`)
     } finally {
       setDeletingReviewId(null)
     }
@@ -85,12 +88,12 @@ export default function ApartmentPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Квартира не найдена</h1>
+          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('apartment.apartmentNotFound')}</h1>
           <button
             onClick={() => router.push('/')}
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
           >
-            Вернуться на карту
+            {t('apartment.backToMap')}
           </button>
         </div>
       </div>
@@ -103,7 +106,7 @@ export default function ApartmentPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
           <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-            Квартира {apartment.number}
+            {t('apartment.apartment')} {apartment.number}
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
             {apartment.address.city}, {apartment.address.street},{' '}
@@ -112,11 +115,10 @@ export default function ApartmentPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             {apartment.reviews.length > 0 ? (
               <>
-                {apartment.reviews.length}{' '}
-                {apartment.reviews.length === 1 ? 'отзыв' : apartment.reviews.length < 5 ? 'отзыва' : 'отзывов'}
+                {apartment.reviews.length} {pluralReviewsLocale(apartment.reviews.length, locale)}
               </>
             ) : (
-              <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
+              <span className="text-gray-400 dark:text-gray-500">{t('apartment.noReviewsShort')}</span>
             )}
           </p>
         </div>
@@ -124,8 +126,8 @@ export default function ApartmentPage() {
         <div className="space-y-4">
           {apartment.reviews.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
-              <p className="text-gray-500 dark:text-gray-400 mb-2">Пока нет отзывов об этой квартире</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500">Нет отзывов</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-2">{t('apartment.noReviews')}</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">{t('apartment.noReviewsShort')}</p>
             </div>
           ) : (
             apartment.reviews.map((review) => (
@@ -162,7 +164,7 @@ export default function ApartmentPage() {
                         <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                           {review.averageRating.toFixed(1)}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">из 5</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('apartment.of5')}</div>
                       </div>
                       {isModerator && (
                         <button
@@ -187,8 +189,8 @@ export default function ApartmentPage() {
                       className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 mb-2"
                     >
                       {expandedReviews.has(review.id)
-                        ? 'Скрыть детальные оценки'
-                        : 'Показать детальные оценки'}
+                        ? t('apartment.hideRatings')
+                        : t('apartment.showRatings')}
                     </button>
                     {expandedReviews.has(review.id) && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
@@ -198,14 +200,14 @@ export default function ApartmentPage() {
                             className="flex justify-between items-center text-sm"
                           >
                             <span className="text-gray-600 dark:text-gray-300">
-                              {RATING_CRITERIA_LABELS[rating.criterion]}
+                              {t(`ratings.${rating.criterion}`)}
                             </span>
                             <div className="flex space-x-1">
                               {[1, 2, 3, 4, 5].map((score) => (
                                 <span
                                   key={score}
                                   className={getScoreViewClasses(score, score <= rating.score)}
-                                  title={score === 1 ? 'Плохо' : score === 5 ? 'Отлично' : undefined}
+                                  title={score === 1 ? t('ratings.bad') : score === 5 ? t('ratings.good') : undefined}
                                 >
                                   {score}
                                 </span>
@@ -224,7 +226,7 @@ export default function ApartmentPage() {
                           <img
                             key={photo.id}
                             src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                            alt="Фото квартиры"
+                            alt={t('apartment.photoAlt')}
                             className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
                             loading="lazy"
                             decoding="async"

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Script from 'next/script'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { register } = useAuthStore()
   const [formData, setFormData] = useState({
@@ -101,12 +103,12 @@ export default function RegisterPage() {
     setError('')
 
     if (!acceptedTerms) {
-      setError('Необходимо принять правила пользовательского соглашения')
+      setError(t('register.errorTerms'))
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Пароли не совпадают')
+      setError(t('register.errorPasswordMatch'))
       return
     }
 
@@ -117,7 +119,7 @@ export default function RegisterPage() {
     const monthDiff = today.getMonth() - birthDate.getMonth()
 
     if (age < 18 || (age === 18 && monthDiff < 0)) {
-      setError('Вы должны быть старше 18 лет')
+      setError(t('register.errorAge'))
       return
     }
 
@@ -132,7 +134,7 @@ export default function RegisterPage() {
       })
       router.push('/')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка регистрации')
+      setError(err.response?.data?.message || t('register.error'))
     } finally {
       setIsLoading(false)
     }
@@ -145,17 +147,17 @@ export default function RegisterPage() {
           <button
             onClick={() => router.push('/')}
             className="absolute -top-2 -left-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-            title="Вернуться на главную"
+            title={t('login.back')}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-            Регистрация в ArendaRate
+            {t('register.title')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Только для лиц старше 18 лет
+            {t('register.over18')}
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -168,7 +170,7 @@ export default function RegisterPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Имя
+                {t('register.name')}
               </label>
               <input
                 id="name"
@@ -183,7 +185,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
+                {t('login.email')}
               </label>
               <input
                 id="email"
@@ -198,7 +200,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Дата рождения
+                {t('register.dateOfBirth')}
               </label>
               <input
                 id="dateOfBirth"
@@ -213,7 +215,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Пароль (минимум 6 символов)
+                {t('register.passwordLabel')}
               </label>
               <input
                 id="password"
@@ -229,7 +231,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Подтвердите пароль
+                {t('register.confirmPassword')}
               </label>
               <input
                 id="confirmPassword"
@@ -249,7 +251,7 @@ export default function RegisterPage() {
               disabled={isLoading || !acceptedTerms}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+              {isLoading ? t('register.registering') : t('register.submit')}
             </button>
           </div>
 
@@ -262,9 +264,9 @@ export default function RegisterPage() {
               className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
             <label htmlFor="acceptedTerms" className="text-sm text-gray-700 dark:text-gray-300">
-              Принимаю правила{' '}
+              {t('register.acceptTerms')}{' '}
               <Link href="/user-agreement" className="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 underline">
-                пользовательского соглашения
+                {t('register.acceptTermsLink')}
               </Link>
             </label>
           </div>
@@ -274,7 +276,7 @@ export default function RegisterPage() {
               <div className="w-full border-t border-gray-300 dark:border-gray-600" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">Или зарегистрируйтесь через</span>
+              <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">{t('register.orRegisterVia')}</span>
             </div>
           </div>
 
@@ -284,7 +286,7 @@ export default function RegisterPage() {
               onClick={() => handleOAuth('yandex')}
               className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              Яндекс
+              {t('register.yandex')}
             </button>
 
             <div className="space-y-2">
@@ -302,7 +304,7 @@ export default function RegisterPage() {
               href="/login"
               className="text-sm text-primary-600 hover:text-primary-500"
             >
-              Уже есть аккаунт? Войти
+              {t('register.haveAccount')}
             </Link>
           </div>
         </form>

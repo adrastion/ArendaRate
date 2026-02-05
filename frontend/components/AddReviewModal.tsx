@@ -6,8 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { reviewApi, uploadApi, addressApi } from '@/lib/api'
 import { getScoreButtonClasses } from '@/lib/ratingColors'
-import { pluralReviews } from '@/lib/pluralize'
-import { RatingCriterion, RATING_CRITERIA_LABELS } from '@/types'
+import { pluralReviewsLocale } from '@/lib/pluralize'
+import { RatingCriterion } from '@/types'
+import { useTranslation } from '@/lib/useTranslation'
 import { format } from 'date-fns'
 
 const reviewSchema = z.object({
@@ -43,6 +44,7 @@ export function AddReviewModal({
   initialApartmentId,
   initialAddress,
 }: AddReviewModalProps) {
+  const { t, locale } = useTranslation()
   const [step, setStep] = useState(initialAddress ? 2 : 1) // Если адрес уже выбран, начинаем со 2 шага
   const [photos, setPhotos] = useState<File[]>([])
   const [uploadedPhotoUrls, setUploadedPhotoUrls] = useState<string[]>([])
@@ -124,7 +126,7 @@ export function AddReviewModal({
           addressId = createdAddress.address.id
         } catch (error: any) {
           console.error('Error creating address:', error)
-          alert('Ошибка при сохранении адреса. Попробуйте еще раз.')
+          alert(t('addReview.addressError'))
           return
         }
       }
@@ -137,14 +139,14 @@ export function AddReviewModal({
       setStep(2)
     } catch (error: any) {
       console.error('Error in handleAddressSelect:', error)
-      alert('Произошла ошибка. Попробуйте еще раз.')
+      alert(t('addReview.genericError'))
     }
   }
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length + photos.length > 5) {
-      alert('Можно загрузить максимум 5 фотографий')
+      alert(t('addReview.maxPhotos'))
       return
     }
     setPhotos([...photos, ...files])
@@ -165,7 +167,7 @@ export function AddReviewModal({
       const missingCriteria = allCriteria.filter(c => !data.ratings[c] || data.ratings[c] < 1 || data.ratings[c] > 5)
       
       if (missingCriteria.length > 0) {
-        alert(`Пожалуйста, оцените все критерии: ${missingCriteria.map(c => RATING_CRITERIA_LABELS[c]).join(', ')}`)
+        alert(`${t('addReview.rateAllCriteria')}: ${missingCriteria.map(c => t(`ratings.${c}`)).join(', ')}`)
         setIsSubmitting(false)
         return
       }
@@ -235,7 +237,7 @@ export function AddReviewModal({
         }
       }
 
-      alert('Отзыв успешно отправлен на модерацию!')
+      alert(t('addReview.success'))
       
       // Вызываем callback для обновления данных
       if (onSuccess) {
@@ -256,17 +258,17 @@ export function AddReviewModal({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Добавить отзыв - Шаг 1: Выбор адреса</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('addReview.title')} - {t('addReview.step1Title')}</h2>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Поиск адреса
+                {t('addReview.addressSearch')}
               </label>
               <input
                 type="text"
                 value={addressSearchQuery}
                 onChange={(e) => setAddressSearchQuery(e.target.value)}
-                placeholder="Город, улица, дом..."
+                placeholder={t('addReview.addressPlaceholder')}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               />
               {addressResults.length > 0 ? (
@@ -278,15 +280,15 @@ export function AddReviewModal({
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                         {address.reviewsCount !== undefined && address.reviewsCount > 0 ? (
-                          <>{address.reviewsCount} {pluralReviews(address.reviewsCount)}</>
+                          <>{address.reviewsCount} {pluralReviewsLocale(address.reviewsCount, locale)}</>
                         ) : (
-                          <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
+                          <span className="text-gray-400 dark:text-gray-500">{t('apartmentList.noReviews')}</span>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Номер квартиры"
+                          placeholder={t('addReview.apartmentNumber')}
                           className="flex-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                           onKeyPress={(e) => {
                             if (e.key === 'Enter') {
@@ -305,12 +307,12 @@ export function AddReviewModal({
                             if (apartmentNumber) {
                               handleAddressSelect(address, apartmentNumber)
                             } else {
-                              alert('Введите номер квартиры')
+                              alert(t('addReview.enterApartmentNumber'))
                             }
                           }}
                           className="px-4 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
                         >
-                          Выбрать
+                          {t('addReview.select')}
                         </button>
                       </div>
                     </div>
@@ -318,8 +320,8 @@ export function AddReviewModal({
                 </div>
               ) : addressSearchQuery.length >= 3 ? (
                 <div className="mt-2 p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-center text-gray-500 dark:text-gray-400">
-                  <p className="mb-2">Адрес не найден</p>
-                  <p className="text-sm">Проверьте правильность ввода или создайте новый адрес вручную</p>
+                  <p className="mb-2">{t('addReview.addressNotFound')}</p>
+                  <p className="text-sm">{t('addReview.checkAddress')}</p>
                 </div>
               ) : null}
             </div>
@@ -329,7 +331,7 @@ export function AddReviewModal({
                 onClick={onClose}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
-                Отмена
+                {t('common.cancel')}
               </button>
             </div>
           </div>
@@ -342,7 +344,7 @@ export function AddReviewModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Добавить отзыв - Шаг 2: Оценка и комментарий</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('addReview.title')} - {t('addReview.step2Title')}</h2>
 
           {selectedAddress && (
             <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-3">
@@ -351,7 +353,7 @@ export function AddReviewModal({
               </p>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Номер квартиры
+                  {t('addReview.apartmentNumber')}
                 </label>
                 <input
                   type="text"
@@ -370,23 +372,23 @@ export function AddReviewModal({
 
           {/* Оценки по критериям */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Оценка по критериям (1–5)</h3>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">{t('addReview.ratingsTitle')}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1">
                 <span className="w-5 h-5 rounded bg-red-500 text-white text-xs flex items-center justify-center">1</span>
-                <span>плохо</span>
+                <span>{t('addReview.bad')}</span>
               </span>
               <span className="text-gray-400">→</span>
               <span className="inline-flex items-center gap-1">
                 <span className="w-5 h-5 rounded bg-green-500 text-white text-xs flex items-center justify-center">5</span>
-                <span>отлично</span>
+                <span>{t('addReview.good')}</span>
               </span>
             </p>
             <div className="space-y-4">
               {Object.values(RatingCriterion).map((criterion) => (
                 <div key={criterion}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {RATING_CRITERIA_LABELS[criterion]}
+                    {t(`ratings.${criterion}`)}
                   </label>
                   <div className="flex space-x-2">
                     {[1, 2, 3, 4, 5].map((score) => (
@@ -395,7 +397,7 @@ export function AddReviewModal({
                         type="button"
                         onClick={() => setValue(`ratings.${criterion}`, score)}
                         className={getScoreButtonClasses(score, ratings[criterion] === score)}
-                        title={score === 1 ? 'Плохо' : score === 5 ? 'Отлично' : undefined}
+                        title={score === 1 ? t('ratings.bad') : score === 5 ? t('ratings.good') : undefined}
                       >
                         {score}
                       </button>
@@ -414,7 +416,7 @@ export function AddReviewModal({
           {/* Комментарий */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Комментарий (до 100 символов)
+              {t('addReview.comment')}
             </label>
             <textarea
               {...register('comment')}
@@ -434,7 +436,7 @@ export function AddReviewModal({
           <div className="mb-6 grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Период проживания с
+                {t('addReview.periodFromLabel')}
               </label>
               <input
                 type="date"
@@ -446,7 +448,7 @@ export function AddReviewModal({
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">по</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('addReview.periodToLabel')}</label>
               <input
                 type="date"
                 {...register('periodTo')}
@@ -461,7 +463,7 @@ export function AddReviewModal({
           {/* Загрузка фото */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Фотографии (до 5 штук)
+              {t('addReview.photosLabel')}
             </label>
             <input
               type="file"
@@ -498,14 +500,14 @@ export function AddReviewModal({
               onClick={() => setStep(1)}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              Назад
+              {t('common.back')}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -518,7 +520,7 @@ export function AddReviewModal({
                 
                 if (missingCriteria.length > 0) {
                   e.preventDefault()
-                  alert(`Пожалуйста, оцените все критерии. Не оценено: ${missingCriteria.map(c => RATING_CRITERIA_LABELS[c]).join(', ')}`)
+                  alert(`${t('addReview.rateAllCriteria')}: ${missingCriteria.map(c => t(`ratings.${c}`)).join(', ')}`)
                   return false
                 }
                 
@@ -537,7 +539,7 @@ export function AddReviewModal({
               }}
               className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
-              {isSubmitting ? 'Отправка...' : 'Отправить на модерацию'}
+              {isSubmitting ? t('addReview.submitting') : t('addReview.submit')}
             </button>
           </div>
         </form>

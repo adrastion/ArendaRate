@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { addressApi } from '@/lib/api'
 import { AddressSearchResult } from '@/types'
+import { useTranslation } from '@/lib/useTranslation'
+import { pluralApartmentsLocale, pluralReviewsLocale } from '@/lib/pluralize'
 
 interface AddressSearchProps {
   onSelect: (address: AddressSearchResult) => void
@@ -15,6 +17,7 @@ const searchCache = new Map<string, AddressSearchResult[]>()
 const MAX_CACHE_SIZE = 50
 
 export function AddressSearch({ onSelect, userLocation = null }: AddressSearchProps) {
+  const { t, locale } = useTranslation()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<AddressSearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -109,6 +112,8 @@ export function AddressSearch({ onSelect, userLocation = null }: AddressSearchPr
               key={address.id}
               address={address}
               onSelect={handleSelect}
+              t={t}
+              locale={locale}
             />
           ))}
         </div>
@@ -116,7 +121,7 @@ export function AddressSearch({ onSelect, userLocation = null }: AddressSearchPr
 
       {isOpen && results.length === 0 && query.length >= 3 && !isLoading && (
         <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
-          Ничего не найдено
+          {t('search.nothingFound')}
         </div>
       )}
     </div>
@@ -126,10 +131,14 @@ export function AddressSearch({ onSelect, userLocation = null }: AddressSearchPr
 // Мемоизированный компонент для результата поиска
 const SearchResultItem = React.memo(({ 
   address, 
-  onSelect 
+  onSelect,
+  t,
+  locale,
 }: { 
   address: AddressSearchResult
-  onSelect: (address: AddressSearchResult) => void 
+  onSelect: (address: AddressSearchResult) => void
+  t: (key: string) => string
+  locale: 'ru' | 'en'
 }) => (
   <button
     onClick={() => onSelect(address)}
@@ -141,20 +150,20 @@ const SearchResultItem = React.memo(({
     <div className="text-sm text-gray-500 dark:text-gray-400">
       {address.apartmentsCount > 0 ? (
         <>
-          {address.apartmentsCount} {address.apartmentsCount === 1 ? 'квартира' : address.apartmentsCount < 5 ? 'квартиры' : 'квартир'}
+          {address.apartmentsCount} {pluralApartmentsLocale(address.apartmentsCount, locale)}
           {address.reviewsCount !== undefined && (
             <>
               {' • '}
               {address.reviewsCount > 0 ? (
-                <>{address.reviewsCount} {address.reviewsCount === 1 ? 'отзыв' : address.reviewsCount < 5 ? 'отзыва' : 'отзывов'}</>
+                <>{address.reviewsCount} {pluralReviewsLocale(address.reviewsCount, locale)}</>
               ) : (
-                <span className="text-gray-400">Нет отзывов</span>
+                <span className="text-gray-400">{t('apartmentList.noReviews')}</span>
               )}
             </>
           )}
         </>
       ) : (
-        <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
+        <span className="text-gray-400 dark:text-gray-500">{t('apartmentList.noReviews')}</span>
       )}
     </div>
   </button>

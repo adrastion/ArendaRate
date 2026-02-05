@@ -1,96 +1,92 @@
 'use client'
 
 import { Header } from '@/components/Header'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function ReviewsAboutPage() {
+  const { t } = useTranslation()
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Отзывы о жилье</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('reviews.title')}</h1>
 
           <div className="prose prose-lg max-w-none dark:prose-invert">
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Наша миссия</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('reviews.mission')}</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                ArendaRate — это платформа, созданная для повышения прозрачности рынка аренды жилья.
-                Мы предоставляем будущим арендаторам доступ к проверенным отзывам и оценкам предыдущих жильцов,
-                помогая принимать обоснованные решения при выборе жилья.
+                {t('reviews.missionP1')}
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Наша цель — создать честную и открытую экосистему, где каждый может поделиться своим опытом
-                и получить достоверную информацию о жилье перед заключением договора аренды.
+                {t('reviews.missionP2')}
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Как это работает</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('reviews.howTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Для арендаторов</h3>
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('reviews.forTenants')}</h3>
                   <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
-                    <li>Изучайте отзывы о квартирах на интерактивной карте</li>
-                    <li>
-                      Оценивайте жилье по 6 критериям: техническое состояние, чистота, безопасность, комфорт, честность
-                      арендодателя и соотношение цены и качества
-                    </li>
-                    <li>Просматривайте фотографии и детальные комментарии от предыдущих жильцов</li>
-                    <li>Принимайте обоснованные решения на основе реального опыта других людей</li>
+                    <li>{t('reviews.forTenants1')}</li>
+                    <li>{t('reviews.forTenants2')}</li>
+                    <li>{t('reviews.forTenants3')}</li>
+                    <li>{t('reviews.forTenants4')}</li>
                   </ul>
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                    Для тех, кто снимал жилье
+                    {t('reviews.forRenters')}
                   </h3>
                   <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
-                    <li>Делитесь своим опытом проживания в квартире</li>
-                    <li>Оставляйте детальные отзывы с оценками и фотографиями</li>
-                    <li>Помогайте другим людям избежать проблемных вариантов</li>
-                    <li>Создавайте сообщество ответственных арендаторов</li>
+                    <li>{t('reviews.forRenters1')}</li>
+                    <li>{t('reviews.forRenters2')}</li>
+                    <li>{t('reviews.forRenters3')}</li>
+                    <li>{t('reviews.forRenters4')}</li>
                   </ul>
                 </div>
               </div>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Система модерации</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('reviews.modTitle')}</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Все отзывы проходят проверку модераторами перед публикацией. Это гарантирует:
+                {t('reviews.modP')}
               </p>
               <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4">
-                <li>Отсутствие оскорблений, спама и рекламы</li>
-                <li>Защиту личных данных арендодателей и соседей</li>
-                <li>Качество и достоверность информации</li>
-                <li>Соблюдение правил сообщества</li>
+                <li>{t('reviews.mod1')}</li>
+                <li>{t('reviews.mod2')}</li>
+                <li>{t('reviews.mod3')}</li>
+                <li>{t('reviews.mod4')}</li>
               </ul>
             </section>
 
             <section className="mb-2">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Принципы работы</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('reviews.principles')}</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Прозрачность</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('reviews.transparency')}</h3>
                   <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Вся информация о жилье доступна открыто, без скрытых условий
+                    {t('reviews.transparencyP')}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Безопасность</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('reviews.safety')}</h3>
                   <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Защита личных данных и конфиденциальность пользователей
+                    {t('reviews.safetyP')}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Честность</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('reviews.honesty')}</h3>
                   <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Только реальные отзывы от людей, которые действительно проживали в квартирах
+                    {t('reviews.honestyP')}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Сообщество</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('reviews.community')}</h3>
                   <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    Взаимопомощь и поддержка между арендаторами
+                    {t('reviews.communityP')}
                   </p>
                 </div>
               </div>

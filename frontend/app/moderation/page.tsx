@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { moderationApi } from '@/lib/api'
-import { Review, RATING_CRITERIA_LABELS, RatingCriterion } from '@/types'
+import { Review } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function ModerationPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, checkAuth } = useAuthStore()
   const [reviews, setReviews] = useState<Review[]>([])
@@ -44,33 +46,33 @@ export default function ModerationPage() {
       await moderationApi.approveReview(reviewId)
       setReviews(reviews.filter((r) => r.id !== reviewId))
     } catch (error) {
-      alert('Ошибка при одобрении отзыва')
+      alert(t('moderation.approveError'))
     }
   }
 
   const handleReject = async (reviewId: string) => {
-    const reason = prompt('Укажите причину отклонения:')
+    const reason = prompt(t('moderation.rejectPrompt'))
     if (!reason) return
 
     try {
       await moderationApi.rejectReview(reviewId, reason)
       setReviews(reviews.filter((r) => r.id !== reviewId))
     } catch (error) {
-      alert('Ошибка при отклонении отзыва')
+      alert(t('moderation.rejectError'))
     }
   }
 
   const handleDelete = async (reviewId: string) => {
-    if (!confirm('Вы уверены, что хотите удалить этот отзыв? Это действие нельзя отменить.')) {
+    if (!confirm(t('moderation.deleteConfirm'))) {
       return
     }
 
     try {
       await moderationApi.deleteReview(reviewId)
       setReviews(reviews.filter((r) => r.id !== reviewId))
-      alert('Отзыв успешно удален')
+      alert(t('moderation.deleteSuccess'))
     } catch (error: any) {
-      alert(`Ошибка при удалении отзыва: ${error.response?.data?.message || error.message}`)
+      alert(`${t('moderation.deleteError')}: ${error.response?.data?.message || error.message}`)
     }
   }
 
@@ -105,7 +107,7 @@ export default function ModerationPage() {
 
         {reviews.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-500 dark:text-gray-400">
-            Нет отзывов на модерацию
+            {t('moderation.noPending')}
           </div>
         ) : (
           <div className="space-y-4">
@@ -116,14 +118,14 @@ export default function ModerationPage() {
                     <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">
                       {review.apartment.address.city},{' '}
                       {review.apartment.address.street},{' '}
-                      {review.apartment.address.building}, Кв.{' '}
+                      {review.apartment.address.building}, {t('profile.aptAbbr')}{' '}
                       {review.apartment.number}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Пользователь: {review.user.name}
+                      {t('moderation.user')}: {review.user.name}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Период:{' '}
+                      {t('moderation.period')}:{' '}
                       {format(new Date(review.periodFrom), 'dd.MM.yyyy')} -{' '}
                       {format(new Date(review.periodTo), 'dd.MM.yyyy')}
                     </div>
@@ -144,8 +146,8 @@ export default function ModerationPage() {
                       className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 mb-2"
                     >
                       {expandedReviews.has(review.id)
-                        ? 'Скрыть детальные оценки'
-                        : 'Показать детальные оценки'}
+                        ? t('address.hideRatings')
+                        : t('address.showRatings')}
                     </button>
                     {expandedReviews.has(review.id) && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
@@ -155,7 +157,7 @@ export default function ModerationPage() {
                             className="flex justify-between items-center text-sm"
                           >
                             <span className="text-gray-600 dark:text-gray-300">
-                              {RATING_CRITERIA_LABELS[rating.criterion]}
+                              {t(`ratings.${rating.criterion}`)}
                             </span>
                             <span className="font-semibold text-gray-900 dark:text-gray-100">{rating.score}/5</span>
                           </div>
@@ -171,7 +173,7 @@ export default function ModerationPage() {
                       <img
                         key={photo.id}
                         src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                        alt="Фото"
+                        alt={t('profile.photo')}
                         className="w-full h-24 object-cover rounded-lg"
                       />
                     ))}
@@ -183,19 +185,19 @@ export default function ModerationPage() {
                     onClick={() => handleApprove(review.id)}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
-                    Одобрить
+                    {t('moderation.approve')}
                   </button>
                   <button
                     onClick={() => handleReject(review.id)}
                     className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
-                    Отклонить
+                    {t('moderation.reject')}
                   </button>
                   <button
                     onClick={() => handleDelete(review.id)}
                     className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
-                    Удалить
+                    {t('moderation.delete')}
                   </button>
                 </div>
               </div>
@@ -210,17 +212,17 @@ export default function ModerationPage() {
               disabled={page === 1}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              Назад
+              {t('moderation.back')}
             </button>
             <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
-              Страница {page} из {totalPages}
+              {t('moderation.pageOf')} {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage(page + 1)}
               disabled={page === totalPages}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              Вперед
+              {t('moderation.next')}
             </button>
           </div>
         )}

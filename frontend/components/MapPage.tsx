@@ -10,18 +10,24 @@ import { Header } from './Header'
 import { ApartmentList } from './ApartmentList'
 import { AddReviewButton } from './AddReviewButton'
 import { AddReviewModal } from './AddReviewModal'
+import { useTranslation } from '@/lib/useTranslation'
+
+function MapLoadingPlaceholder() {
+  const { t } = useTranslation()
+  return (
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">{t('map.loading')}</p>
+      </div>
+    </div>
+  )
+}
 
 // Динамическая загрузка карты (для SSR)
 const Map = dynamic(() => import('./Map').then((mod) => mod.Map), {
   ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">Загрузка карты...</p>
-      </div>
-    </div>
-  ),
+  loading: () => <MapLoadingPlaceholder />,
 })
 
 interface Marker {
@@ -38,6 +44,7 @@ const DEFAULT_MAP_ZOOM = 10
 const USER_LOCATION_ZOOM = 12
 
 export function MapPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, checkAuth } = useAuthStore()
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -115,7 +122,7 @@ export function MapPage() {
             addressId = createdAddress.address.id
           } catch (error: any) {
             console.error('Error creating address:', error)
-            alert(`Ошибка при сохранении адреса: ${error.response?.data?.message || error.message || 'Попробуйте еще раз'}`)
+            alert(`${t('mapPage.addressSaveError')}: ${error.response?.data?.message || error.message || ''}`)
             return
           }
         } else {
@@ -129,7 +136,7 @@ export function MapPage() {
       router.push(`/address/${addressId}`)
     } catch (error: any) {
       console.error('Error handling address selection:', error)
-      alert(`Ошибка при обработке адреса: ${error.response?.data?.message || error.message || 'Неизвестная ошибка'}`)
+      alert(`${t('mapPage.addressError')}: ${error.response?.data?.message || error.message || ''}`)
     } finally {
       setIsLoadingAddress(false)
     }
@@ -177,7 +184,7 @@ export function MapPage() {
       console.log('Apartment list should be visible now')
     } catch (error: any) {
       console.error('Error loading address:', error)
-      alert(`Ошибка при загрузке адреса: ${error.response?.data?.message || error.message || 'Неизвестная ошибка'}`)
+      alert(`${t('mapPage.addressLoadError')}: ${error.response?.data?.message || error.message || ''}`)
     } finally {
       setIsLoadingAddress(false)
     }
@@ -237,7 +244,7 @@ export function MapPage() {
             <div className="pointer-events-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
-                <span className="text-gray-700 dark:text-gray-300">Загрузка адреса...</span>
+                <span className="text-gray-700 dark:text-gray-300">{t('map.loadingAddress')}</span>
               </div>
             </div>
           </div>

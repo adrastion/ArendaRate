@@ -5,16 +5,19 @@ import { useParams, useRouter } from 'next/navigation'
 import { addressApi, moderationApi } from '@/lib/api'
 import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Address, Apartment, Review } from '@/types'
-import { RATING_CRITERIA_LABELS, RatingCriterion } from '@/types'
+import { RatingCriterion } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
 import { AddReviewButton } from '@/components/AddReviewButton'
 import { AddReviewModal } from '@/components/AddReviewModal'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslation } from '@/lib/useTranslation'
+import { pluralReviewsLocale, pluralApartmentsLocale } from '@/lib/pluralize'
 
 type ApartmentWithReviews = Apartment & { reviews: Review[] }
 
 export default function AddressPage() {
+  const { t, locale } = useTranslation()
   const params = useParams()
   const router = useRouter()
   const { user, checkAuth } = useAuthStore()
@@ -53,17 +56,17 @@ export default function AddressPage() {
   }
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (!confirm('Вы уверены, что хотите удалить этот отзыв? Это действие нельзя отменить.')) {
+    if (!confirm(t('address.deleteConfirm'))) {
       return
     }
     setDeletingReviewId(reviewId)
     try {
       await moderationApi.deleteReview(reviewId)
       await loadAddress()
-      alert('Отзыв успешно удален')
+      alert(t('address.deleteSuccess'))
     } catch (error: any) {
       console.error('Error deleting review:', error)
-      alert(`Ошибка при удалении отзыва: ${error.response?.data?.message || error.message || 'Попробуйте еще раз'}`)
+      alert(`${t('address.deleteError')}: ${error.response?.data?.message || error.message || ''}`)
     } finally {
       setDeletingReviewId(null)
     }
@@ -84,12 +87,12 @@ export default function AddressPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Адрес не найден</h1>
+          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('address.addressNotFound')}</h1>
           <button
             onClick={() => router.push('/')}
             className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
           >
-            Вернуться на карту
+            {t('address.backToMap')}
           </button>
         </div>
       </div>
@@ -120,14 +123,12 @@ export default function AddressPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {totalReviews > 0 ? (
                   <>
-                    {totalReviews}{' '}
-                    {totalReviews === 1 ? 'отзыв' : totalReviews < 5 ? 'отзыва' : 'отзывов'}
+                    {totalReviews} {pluralReviewsLocale(totalReviews, locale)}
                     {' · '}
-                    {apartments.length}{' '}
-                    {apartments.length === 1 ? 'квартира' : apartments.length < 5 ? 'квартиры' : 'квартир'}
+                    {apartments.length} {pluralApartmentsLocale(apartments.length, locale)}
                   </>
                 ) : (
-                  <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
+                  <span className="text-gray-400 dark:text-gray-500">{t('address.noReviews')}</span>
                 )}
               </p>
             </div>
@@ -142,7 +143,7 @@ export default function AddressPage() {
         <div className="space-y-6">
           {totalReviews === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
-              <p className="text-gray-500 dark:text-gray-400 mb-4">Пока нет отзывов по этому дому</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">{t('address.noReviewsYet')}</p>
               {user && (
                 <AddReviewButton onClick={() => setShowAddReview(true)} />
               )}
@@ -153,7 +154,7 @@ export default function AddressPage() {
                 <div key={apartment.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                   <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      Квартира {apartment.number}
+                      {t('address.apartment')} {apartment.number}
                     </h2>
                   </div>
                   <div className="divide-y divide-gray-100">
@@ -175,7 +176,7 @@ export default function AddressPage() {
                               </div>
                             )}
                             <div>
-                              <div className="font-semibold text-gray-900 dark:text-gray-100">{review.user?.name ?? 'Пользователь'}</div>
+                              <div className="font-semibold text-gray-900 dark:text-gray-100">{review.user?.name ?? t('address.user')}</div>
                               <div className="text-sm text-gray-500 dark:text-gray-400">
                                 {format(new Date(review.periodFrom), 'dd.MM.yyyy')} —{' '}
                                 {format(new Date(review.periodTo), 'dd.MM.yyyy')}
@@ -188,16 +189,16 @@ export default function AddressPage() {
                                 <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                                   {review.averageRating.toFixed(1)}
                                 </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">из 5</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">{t('ratings.of5')}</div>
                               </div>
                               {isModerator && (
                                 <button
                                   onClick={() => handleDeleteReview(review.id)}
                                   disabled={deletingReviewId === review.id}
                                   className="ml-2 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                  title="Удалить отзыв"
+                                  title={t('address.deleteReview')}
                                 >
-                                  {deletingReviewId === review.id ? 'Удаление...' : '✕'}
+                                  {deletingReviewId === review.id ? t('address.deleting') : '✕'}
                                 </button>
                               )}
                             </div>
@@ -213,8 +214,8 @@ export default function AddressPage() {
                               className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 mb-2"
                             >
                               {expandedReviews.has(review.id)
-                                ? 'Скрыть детальные оценки'
-                                : 'Показать детальные оценки'}
+                                ? t('address.hideRatings')
+                                : t('address.showRatings')}
                             </button>
                             {expandedReviews.has(review.id) && (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
@@ -224,14 +225,14 @@ export default function AddressPage() {
                                     className="flex justify-between items-center text-sm"
                                   >
                                     <span className="text-gray-600 dark:text-gray-300">
-                                      {RATING_CRITERIA_LABELS[rating.criterion as RatingCriterion]}
+                                      {t(`ratings.${rating.criterion}`)}
                                     </span>
                                     <div className="flex space-x-1">
                                       {[1, 2, 3, 4, 5].map((score) => (
                                         <span
                                           key={score}
                                           className={getScoreViewClasses(score, score <= rating.score)}
-                                          title={score === 1 ? 'Плохо' : score === 5 ? 'Отлично' : undefined}
+                                          title={score === 1 ? t('ratings.bad') : score === 5 ? t('ratings.good') : undefined}
                                         >
                                           {score}
                                         </span>
@@ -250,7 +251,7 @@ export default function AddressPage() {
                               <img
                                 key={photo.id}
                                 src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                                alt="Фото квартиры"
+                                alt={t('address.photoAlt')}
                                 className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
                                 loading="lazy"
                                 decoding="async"

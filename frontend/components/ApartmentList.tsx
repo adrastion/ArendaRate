@@ -1,6 +1,8 @@
 'use client'
 
 import React from 'react'
+import { useTranslation } from '@/lib/useTranslation'
+import { pluralApartmentsLocale, pluralReviewsLocale } from '@/lib/pluralize'
 
 interface Apartment {
   id: string
@@ -30,6 +32,7 @@ export function ApartmentList({
   onApartmentClick,
   onClose,
 }: ApartmentListProps) {
+  const { t, locale } = useTranslation()
   return (
     <div className="apartment-list bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 max-h-96 overflow-y-auto">
       <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600 px-4 py-3">
@@ -41,10 +44,10 @@ export function ApartmentList({
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {totalReviewsCount > 0 ? (
                 <>
-                  Всего отзывов: {totalReviewsCount}
+                  {t('apartmentList.totalReviews')}: {totalReviewsCount}
                 </>
               ) : (
-                <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
+                <span className="text-gray-400 dark:text-gray-500">{t('apartmentList.noReviews')}</span>
               )}
             </p>
           </div>
@@ -62,15 +65,15 @@ export function ApartmentList({
         </div>
         {apartments.length > 0 && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            {apartments.length} {apartments.length === 1 ? 'квартира' : apartments.length < 5 ? 'квартиры' : 'квартир'}
+            {apartments.length} {pluralApartmentsLocale(apartments.length, locale)}
           </p>
         )}
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-600">
         {apartments.length === 0 ? (
           <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-            <p>В этом доме пока нет квартир с отзывами</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Нет отзывов</p>
+            <p>{t('apartmentList.noApartments')}</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">{t('apartmentList.noReviews')}</p>
           </div>
         ) : (
           apartments.map((apartment) => (
@@ -78,6 +81,8 @@ export function ApartmentList({
               key={apartment.id}
               apartment={apartment}
               onApartmentClick={onApartmentClick}
+              t={t}
+              locale={locale}
             />
           ))
         )}
@@ -89,10 +94,14 @@ export function ApartmentList({
 // Мемоизированный компонент для элемента квартиры
 const ApartmentItem = React.memo(({ 
   apartment, 
-  onApartmentClick 
+  onApartmentClick,
+  t,
+  locale,
 }: { 
   apartment: Apartment
-  onApartmentClick: (id: string) => void 
+  onApartmentClick: (id: string) => void
+  t: (key: string) => string
+  locale: 'ru' | 'en'
 }) => (
   <button
     type="button"
@@ -104,15 +113,14 @@ const ApartmentItem = React.memo(({
     className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer text-gray-900 dark:text-gray-100"
   >
     <div className="flex justify-between items-center">
-      <span className="font-medium">Кв. {apartment.number}</span>
+      <span className="font-medium">{t('profile.aptAbbr')} {apartment.number}</span>
       <span className="text-sm text-gray-500 dark:text-gray-400">
         {apartment.reviewsCount > 0 ? (
           <>
-            {apartment.reviewsCount}{' '}
-            {apartment.reviewsCount === 1 ? 'отзыв' : apartment.reviewsCount < 5 ? 'отзыва' : 'отзывов'}
+            {apartment.reviewsCount} {pluralReviewsLocale(apartment.reviewsCount, locale)}
           </>
         ) : (
-          <span className="text-gray-400 dark:text-gray-500">Нет отзывов</span>
+          <span className="text-gray-400 dark:text-gray-500">{t('apartmentList.noReviews')}</span>
         )}
       </span>
     </div>

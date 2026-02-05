@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { reviewApi } from '@/lib/api'
 import { getScoreButtonClasses } from '@/lib/ratingColors'
-import { RatingCriterion, RATING_CRITERIA_LABELS, Review } from '@/types'
+import { RatingCriterion, Review } from '@/types'
+import { useTranslation } from '@/lib/useTranslation'
 
 const editReviewSchema = z.object({
   comment: z.string().min(1, 'Комментарий обязателен').max(100, 'Максимум 100 символов'),
@@ -28,6 +29,7 @@ export function EditReviewModal({
   onClose,
   onSuccess,
 }: EditReviewModalProps) {
+  const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Преобразуем ratings в формат для формы
@@ -95,7 +97,7 @@ export function EditReviewModal({
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Редактировать отзыв</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('editReview.title')}</h2>
             <button
               type="button"
               onClick={onClose}
@@ -107,18 +109,18 @@ export function EditReviewModal({
 
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              ⚠️ После редактирования отзыв будет отправлен на модерацию
+              ⚠️ {t('editReview.moderationWarning')}
             </p>
           </div>
 
           {/* Оценки по критериям */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Оценка по критериям (1-5)</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{t('editReview.ratingsTitle')}</h3>
             <div className="space-y-4">
               {Object.values(RatingCriterion).map((criterion) => (
                 <div key={criterion}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {RATING_CRITERIA_LABELS[criterion]}
+                    {t(`ratings.${criterion}`)}
                   </label>
                   <div className="flex space-x-2">
                     {[1, 2, 3, 4, 5].map((score) => (
@@ -127,7 +129,7 @@ export function EditReviewModal({
                         type="button"
                         onClick={() => setValue(`ratings.${criterion}`, score)}
                         className={getScoreButtonClasses(score, ratings[criterion] === score)}
-                        title={score === 1 ? 'Плохо' : score === 5 ? 'Отлично' : undefined}
+                        title={score === 1 ? t('ratings.bad') : score === 5 ? t('ratings.good') : undefined}
                       >
                         {score}
                       </button>
@@ -146,7 +148,7 @@ export function EditReviewModal({
           {/* Комментарий */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Комментарий (до 100 символов)
+              {t('editReview.comment')}
             </label>
             <textarea
               {...register('comment')}
@@ -166,7 +168,7 @@ export function EditReviewModal({
           <div className="mb-6 grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Период проживания с
+                {t('addReview.periodFromLabel')}
               </label>
               <input
                 type="date"
@@ -178,7 +180,7 @@ export function EditReviewModal({
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">по</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('addReview.periodToLabel')}</label>
               <input
                 type="date"
                 {...register('periodTo')}
@@ -196,14 +198,14 @@ export function EditReviewModal({
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
-              {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
+              {isSubmitting ? t('profile.saving') : t('editReview.saveChanges')}
             </button>
           </div>
         </form>

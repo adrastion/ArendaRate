@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Script from 'next/script'
 import { useAuthStore } from '@/store/authStore'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { login } = useAuthStore()
   const [email, setEmail] = useState('')
@@ -93,7 +95,7 @@ export default function LoginPage() {
       await login(email, password)
       router.push('/')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка входа')
+      setError(err.response?.data?.message || t('login.error'))
     } finally {
       setIsLoading(false)
     }
@@ -113,14 +115,14 @@ export default function LoginPage() {
           <button
             onClick={() => router.push('/')}
             className="absolute -top-2 -left-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-            title="Вернуться на главную"
+            title={t('login.back')}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-            Вход в ArendaRate
+            {t('login.title')}
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -133,7 +135,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
+                {t('login.email')}
               </label>
               <input
                 id="email"
@@ -147,7 +149,7 @@ export default function LoginPage() {
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Пароль
+                {t('login.password')}
               </label>
               <input
                 id="password"
@@ -167,7 +169,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {isLoading ? 'Вход...' : 'Войти'}
+              {isLoading ? t('login.loggingIn') : t('login.submit')}
             </button>
           </div>
 
@@ -176,7 +178,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300 dark:border-gray-600" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">Или войдите через</span>
+              <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">{t('login.orLoginVia')}</span>
             </div>
           </div>
 
@@ -186,7 +188,7 @@ export default function LoginPage() {
               onClick={() => handleOAuth('yandex')}
               className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              Яндекс
+              {t('login.yandex')}
             </button>
 
             <div className="space-y-2">
@@ -204,7 +206,7 @@ export default function LoginPage() {
               href="/register"
               className="text-sm text-primary-600 hover:text-primary-500"
             >
-              Нет аккаунта? Зарегистрироваться
+              {t('login.noAccount')} {t('login.registerLink')}
             </Link>
           </div>
         </form>

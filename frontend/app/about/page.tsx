@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { Header } from '@/components/Header'
+import { useTranslation } from '@/lib/useTranslation'
 
 export default function AboutPage() {
+  const { t } = useTranslation()
   const [isEmailCopied, setIsEmailCopied] = useState(false)
 
   const handleCopyEmail = () => {
@@ -29,105 +31,105 @@ export default function AboutPage() {
                   <span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
                 </div>
                 <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  Устав компании ArendaRate
+                  {t('about.charter')}
                 </p>
                 <p className="mt-4 text-sm md:text-base italic text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
-                  Девиз компании:{' '}
+                  {t('about.motto')}{' '}
                   <span className="font-semibold">
-                    ArendaRate - твой опыт, это чья-то безопасность. Честная аренда начинается здесь.
+                    {t('about.mottoText')}
                   </span>
                 </p>
               </div>
 
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Мы, создатели ArendaRate, осознавая свою ответственность перед каждым человеком, который ищет не просто квартиру, а место, где хочется жить - с комфортом, в безопасности и с доверием, - провозглашаем эту Конституцию основой нашей миссии.
+                {t('about.intro1')}
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Наша платформа даёт арендаторам возможность честно и свободно делиться своим опытом проживания в съёмном жилье, формируя таким образом открытую и справедливую среду для всех.
+                {t('about.intro2')}
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                С помощью отзывов и объективных оценок в виде звёздочек пользователи могут выразить своё мнение по следующим важнейшим аспектам аренды:
+                {t('about.criteriaIntro')}
               </p>
               <ol className="list-decimal list-inside text-gray-700 dark:text-gray-300 space-y-2 ml-4 mb-4">
-                <li>Чистота в квартире и общее состояние жилья.</li>
-                <li>Состояние кухни, ванной комнаты и туалета.</li>
-                <li>Уровень шума в доме и за окном.</li>
-                <li>Поведение и адекватность соседей (в том числе наличие асоциальных или опасных элементов)</li>
-                <li>Развитая инфраструктура: наличие поблизости парков, магазинов, школ, детских садов, поликлиник, торговых центров, спортивных объектов.</li>
-                <li>Транспортная доступность: близость остановок общественного транспорта, метро и дорожной сети.</li>
+                <li>{t('about.criteria1')}</li>
+                <li>{t('about.criteria2')}</li>
+                <li>{t('about.criteria3')}</li>
+                <li>{t('about.criteria4')}</li>
+                <li>{t('about.criteria5')}</li>
+                <li>{t('about.criteria6')}</li>
               </ol>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                Мы верим, что каждый человек, прочитав правдивый отзыв, получает право сделать более осознанный и безопасный выбор. Потому что правда - это тот редкий ресурс, который не теряет своей силы, даже если о нём говорят тихо.
+                {t('about.believeP')}
               </p>
 
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Раздел I. Основные принципы</h2>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 1. Честность и прозрачность</h3>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('about.section1')}</h2>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article1Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                ArendaRate основана на идее открытого диалога и достоверности. Мы предоставляем арендаторам площадку, где личный опыт становится ценным ориентиром для других. Правда о вашем вчерашнем дне помогает кому-то в завтрашнем.
+                {t('about.article1P')}
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 2. Безопасность - основа достойной жизни</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article2Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Для нас безопасность - это не просто функция сервиса, а суть нашей миссии. Мы стремимся создать цифровую экосистему, в которой каждый человек может обезопасить себя от нежелательного жилья, недобросовестных арендодателей и неблагоприятной обстановки. Когда речь идёт о благополучии, нет второстепенных деталей. Чистый подъезд, тихий сосед, освещение рядом с остановкой - всё это и есть безопасность.
+                {t('about.article2P')}
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 3. Свобода слова с ответственностью</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article3Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                Ваше мнение имеет значение - всегда!  Мы поддерживаем свободу самовыражения в рамках честности, корректности и уважения. Отзывы должны быть правдивыми и основанными на личном опыте. Без фальсификаций, без клеветы - только добросовестная правда.
+                {t('about.article3P')}
               </p>
 
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Раздел II. Права пользователей</h2>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 4. Право на публикацию</h3>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('about.section2')}</h2>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article4Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Каждый зарегистрированный пользователь, проживавший в арендуемом жилье, имеет возможность написать отзыв, выставить оценки и поделиться своими личными наблюдениями. ArendaRate способствует тому, чтобы голос арендатора был услышан - качественно, быстро и корректно.
+                {t('about.article4P')}
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 5. Право на защиту информации</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article5Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                На данном этапе платформа принимает и публикует только отзывы арендаторов. Мы обязуемся проверять отзывы на предмет злоупотреблений и нарушений этических норм, сохраняя честность в каждой публикации. У всех пользователей будет возможность сообщать о подозрительных отзывах для повторной проверки.
+                {t('about.article5P')}
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 6. Право на доступ к истории</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article6Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                Каждый желающий может ознакомиться с ранее оставленными отзывами о конкретном жилье, районе или объекте аренды. Мы создаем карту реального опыта аренды, которая призвана предупреждать, вдохновлять и защищать.
+                {t('about.article6P')}
               </p>
 
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Раздел III. Социальная миссия</h2>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 7. Профилактика через правду</h3>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('about.section3')}</h2>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article7Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Если отзыв содержит информацию о потенциальных рисках для жизни, здоровья или эмоционального состояния будущих жильцов (например, агрессивные соседи, дом с многочисленными нарушениями, антисанитария и т. д.), мы обязуемся помечать такие отзывы как «особо важные», чтобы привлечь внимание всех читателей. Такая система сама по себе становится механизмом раннего предупреждения. ArendaRate - это цифровой щит, активируемый словом.
+                {t('about.article7P')}
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 8. Безопасность - бесплатно</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article8Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Функции, связанные с оценкой условий проживания, безопасности и жизненной среды, всегда будут доступны для бесплатного просмотра. Мы считаем, что каждый имеет право знать, что его ждёт за дверью арендованного жилья.
+                {t('about.article8P')}
               </p>
 
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">Статья 9. Просвещение и поддержка</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{t('about.article9Title')}</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                Мы информируем пользователей о правах арендаторов, о том, как распознать недобросовестную сделку, а также о важных аспектах взаимодействия с собственниками и управляющими компаниями. ArendaRate - это не только приложение, но и инструмент для обучения безопасному проживанию в арендованном жилье.
+                {t('about.article9P')}
               </p>
 
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-3">Заключение</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-3">{t('about.conclusionTitle')}</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Эта Конституция - наш моральный и деловой ориентир. Мы создаём не просто информационное пространство, а силу, способную менять человеческие судьбы.
+                {t('about.conclusion1')}
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Один честный отзыв, одна звезда, поставленная от всего сердца, могут уберечь других от неверных решений.
+                {t('about.conclusion2')}
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Пожалуйста расскажите правду о своём опыте проживания - и, возможно, вы сохраните чью-то уверенность, время, душевный покой, здоровье или даже жизнь.
+                {t('about.conclusion3')}
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
-                Мы все вместе создаём доверие там, где раньше был только риск.
+                {t('about.conclusion4')}
               </p>
-              <p className="font-medium text-gray-800 dark:text-gray-200">С уважением, команда ArendaRate.</p>
+              <p className="font-medium text-gray-800 dark:text-gray-200">{t('about.regards')}</p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Контакты и поддержка</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('about.contactSupport')}</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                Если у вас есть вопросы, предложения или вы хотите сообщить о проблеме — свяжитесь с нами удобным способом:
+                {t('about.contactIntro')}
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <button
@@ -142,12 +144,12 @@ export default function AboutPage() {
                     </svg>
                   </div>
                   <div className="min-w-0">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">Почта поддержки и предложений</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{t('about.emailSupport')}</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">
                       ArendaRate@yandex.ru
                     </div>
                     <div className="mt-2 text-sm text-primary-600 dark:text-primary-400 group-hover:underline">
-                      {isEmailCopied ? 'Почта скопирована' : 'Скопировать почту →'}
+                      {isEmailCopied ? t('about.emailCopied') : t('about.copyEmailLink')}
                     </div>
                   </div>
                 </button>
@@ -170,10 +172,10 @@ export default function AboutPage() {
                     </svg>
                   </div>
                   <div className="min-w-0">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">Техподдержка в Telegram</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{t('about.telegramSupport')}</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">t.me/ArendaRateTS</div>
                     <div className="mt-2 text-sm text-sky-700 dark:text-sky-300 group-hover:underline">
-                      Открыть чат →
+                      {t('about.openChat')}
                     </div>
                   </div>
                 </a>
@@ -198,10 +200,10 @@ export default function AboutPage() {
                     </svg>
                   </div>
                   <div className="min-w-0">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">Новостной Telegram-канал</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{t('about.telegramChannel')}</div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">t.me/ArendaRate</div>
                     <div className="mt-2 text-sm text-sky-700 dark:text-sky-300 group-hover:underline">
-                      Перейти в канал →
+                      {t('about.goToChannel')}
                     </div>
                   </div>
                 </a>
@@ -225,13 +227,13 @@ export default function AboutPage() {
                   </div>
                   <div className="min-w-0">
                     <div className="font-semibold text-gray-900 dark:text-gray-100">
-                      Группа во ВКонтакте
+                      {t('about.vkGroup')}
                     </div>
                     <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">
                       vk.com/club235637206
                     </div>
                     <div className="mt-2 text-sm text-blue-700 dark:text-blue-300 group-hover:underline">
-                      Открыть сообщество →
+                      {t('about.openCommunity')}
                     </div>
                   </div>
                 </a>
@@ -239,10 +241,9 @@ export default function AboutPage() {
             </section>
 
             <section className="border-t dark:border-gray-700 pt-8">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Поддержать проект</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('about.supportProject')}</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                ArendaRate — это независимый проект, созданный для помощи людям. 
-                Если вы хотите поддержать развитие платформы, вы можете сделать это через:
+                {t('about.supportIntro')}
               </p>
               <a
                 href="https://yoomoney.ru/to/4100119446457843"
@@ -250,7 +251,7 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
                 className="inline-block bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white px-6 py-3 rounded-md font-medium transition-colors"
               >
-                Сказать спасибо
+                {t('header.thankYou')}
               </a>
             </section>
           </div>

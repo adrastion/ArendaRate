@@ -8,9 +8,11 @@ import { format } from 'date-fns'
 import { Header } from '@/components/Header'
 import { useAuthStore } from '@/store/authStore'
 import { EditReviewModal } from '@/components/EditReviewModal'
+import { useTranslation } from '@/lib/useTranslation'
 import Link from 'next/link'
 
 export default function ProfilePage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, checkAuth, logout, setUser } = useAuthStore()
   const [reviews, setReviews] = useState<Review[]>([])
@@ -42,9 +44,9 @@ export default function ProfilePage() {
     try {
       const res = await userApi.updateEmail(emailDraft)
       setUser(res.user)
-      setProfileSuccess('Email обновлён')
+      setProfileSuccess(t('profile.emailUpdated'))
     } catch (err: any) {
-      setProfileError(err.response?.data?.message || 'Ошибка обновления email')
+      setProfileError(err.response?.data?.message || t('profile.emailError'))
     } finally {
       setEmailSaving(false)
     }
@@ -59,11 +61,11 @@ export default function ProfilePage() {
         currentPassword: currentPassword || undefined,
         newPassword,
       })
-      setProfileSuccess('Пароль обновлён')
+      setProfileSuccess(t('profile.passwordUpdated'))
       setCurrentPassword('')
       setNewPassword('')
     } catch (err: any) {
-      setProfileError(err.response?.data?.message || 'Ошибка обновления пароля')
+      setProfileError(err.response?.data?.message || t('profile.passwordError'))
     } finally {
       setPasswordSaving(false)
     }
@@ -83,11 +85,11 @@ export default function ProfilePage() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return 'На модерации'
+        return t('profile.statusPending')
       case 'APPROVED':
-        return 'Одобрен'
+        return t('profile.statusApproved')
       case 'REJECTED':
-        return 'Отклонен'
+        return t('profile.statusRejected')
       default:
         return status
     }
@@ -119,12 +121,12 @@ export default function ProfilePage() {
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Мой профиль</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('profile.myProfile')}</h1>
           <button
             onClick={logout}
             className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
           >
-            Выйти
+            {t('profile.logout')}
           </button>
         </div>
 
@@ -143,7 +145,7 @@ export default function ProfilePage() {
             )}
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{user?.name}</h2>
-              <p className="text-gray-500 dark:text-gray-400">{user?.email || 'Email не указан'}</p>
+              <p className="text-gray-500 dark:text-gray-400">{user?.email || t('profile.emailNotSet')}</p>
             </div>
           </div>
 
@@ -163,12 +165,12 @@ export default function ProfilePage() {
 
           <div className="mt-6 grid gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('profile.emailLabel')}</label>
               <div className="flex gap-2">
                 <input
                   value={emailDraft}
                   onChange={(e) => setEmailDraft(e.target.value)}
-                  placeholder="Введите email"
+                  placeholder={t('profile.emailPlaceholder')}
                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <button
@@ -177,29 +179,29 @@ export default function ProfilePage() {
                   disabled={emailSaving}
                   className="px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
                 >
-                  {emailSaving ? 'Сохранение…' : 'Сохранить'}
+                  {emailSaving ? t('profile.saving') : t('profile.save')}
                 </button>
               </div>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Если вы входили через VK/Яндекс и email не пришёл — поле будет пустым, вы можете добавить его вручную.
+                {t('profile.emailHint')}
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Пароль</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('profile.passwordLabel')}</label>
               <div className="grid gap-2">
                 <input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Текущий пароль (если установлен)"
+                  placeholder={t('profile.currentPasswordPlaceholder')}
                   className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Новый пароль (минимум 6 символов)"
+                  placeholder={t('profile.newPasswordPlaceholder')}
                   className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <button
@@ -208,29 +210,29 @@ export default function ProfilePage() {
                   disabled={passwordSaving || newPassword.length < 6}
                   className="w-fit px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
                 >
-                  {passwordSaving ? 'Сохранение…' : 'Сохранить пароль'}
+                  {passwordSaving ? t('profile.saving') : t('profile.savePassword')}
                 </button>
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                Если пароль ещё не установлен (вход через VK/Яндекс), просто задайте новый пароль — поле “текущий пароль” можно оставить пустым.
+                {t('profile.passwordHint')}
               </p>
             </div>
           </div>
         </div>
 
         <div className="mb-4">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Мои отзывы ({reviews.length})</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('profile.myReviews')} ({reviews.length})</h2>
         </div>
 
         {reviews.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-500 dark:text-gray-400">
-            У вас пока нет отзывов
+            {t('profile.noReviews')}
             <div className="mt-4">
               <Link
                 href="/map"
                 className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline"
               >
-                Добавить отзыв
+                {t('profile.addReviewLink')}
               </Link>
             </div>
           </div>
@@ -247,12 +249,11 @@ export default function ProfilePage() {
                       >
                         {review.apartment.address.city},{' '}
                         {review.apartment.address.street},{' '}
-                        {review.apartment.address.building}, Кв.{' '}
-                        {review.apartment.number}
+                        {review.apartment.address.building}, {t('profile.aptAbbr')} {review.apartment.number}
                       </Link>
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Период:{' '}
+                      {t('profile.period')}:{' '}
                       {format(new Date(review.periodFrom), 'dd.MM.yyyy')} -{' '}
                       {format(new Date(review.periodTo), 'dd.MM.yyyy')}
                     </div>
@@ -276,7 +277,7 @@ export default function ProfilePage() {
                 {review.status === 'REJECTED' && review.rejectionReason && (
                   <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded p-3 mb-4">
                     <p className="text-sm text-red-700 dark:text-red-300">
-                      <strong>Причина отклонения:</strong> {review.rejectionReason}
+                      <strong>{t('profile.rejectionReason')}:</strong> {review.rejectionReason}
                     </p>
                   </div>
                 )}
@@ -290,12 +291,12 @@ export default function ProfilePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block"
-                        title="Открыть фото"
+                        title={t('profile.openPhoto')}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={`${process.env.NEXT_PUBLIC_API_URL}${photo.url}`}
-                          alt="Фото"
+                          alt={t('profile.photo')}
                           className="w-full h-24 object-cover rounded-lg"
                           loading="lazy"
                           decoding="async"
@@ -307,7 +308,7 @@ export default function ProfilePage() {
 
                 <div className="flex justify-between items-center mt-4">
                   <div className="text-xs text-gray-400 dark:text-gray-500">
-                    Создан:{' '}
+                    {t('profile.created')}:{' '}
                     {format(new Date(review.createdAt), 'dd.MM.yyyy HH:mm')}
                   </div>
                   {review.status !== 'PENDING' && (
@@ -315,7 +316,7 @@ export default function ProfilePage() {
                       onClick={() => setEditingReview(review)}
                       className="px-3 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
                     >
-                      Редактировать
+                      {t('profile.edit')}
                     </button>
                   )}
                 </div>
