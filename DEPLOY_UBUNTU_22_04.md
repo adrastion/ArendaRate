@@ -99,7 +99,7 @@ VK_CLIENT_SECRET=
 VK_CALLBACK_URL=https://arendrate.ru/api/auth/vk/callback
 REDIS_URL=redis://localhost:6379
 UPLOAD_DIR=./uploads
-MAX_FILE_SIZE=5242880
+MAX_FILE_SIZE=10485760
 ALLOWED_FILE_TYPES=jpg,jpeg,png,webp
 FRONTEND_URL=https://arendrate.ru
 ```
@@ -207,7 +207,7 @@ pm2 startup systemd -u $USER --hp $HOME
 - Остановка: `pm2 stop <name>` или `pm2 delete <name>`
 
 ## 13. (Опционально) Nginx как обратный прокси
-Если нужен доступ по 80/443, установите nginx и проксируйте на 3000/3001, настроив TLS (Let’s Encrypt). Пример серверного блока не приводится для краткости, но стандартный reverse-proxy подойдёт.
+Если нужен доступ по 80/443, установите nginx и проксируйте на 3000/3001, настроив TLS (Let’s Encrypt). Используйте `nginx-arendrate.conf` из репозитория. **Важно:** в конфиге задан `client_max_body_size 10M` для загрузки фото — без этого мобильные фото могут давать ошибку 413. После изменения конфига: `sudo nginx -t && sudo systemctl reload nginx`.
 
 ## 14. Обновление версии
 ```bash

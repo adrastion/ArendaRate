@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as YandexStrategy } from 'passport-yandex';
-import { Strategy as VKontakteStrategy } from 'passport-vkontakte';
+import { Strategy as VKIDStrategy } from 'passport-vk-id';
 import { authService } from '../services/authService';
 
 // Яндекс OAuth
@@ -38,34 +38,30 @@ if (process.env.YANDEX_CLIENT_ID && process.env.YANDEX_CLIENT_SECRET && process.
   console.warn('Yandex OAuth is not configured: missing YANDEX_CLIENT_ID/SECRET/CALLBACK');
 }
 
-type VkParams = {
-  email?: string;
-};
-
-// VK OAuth
+// VK ID (id.vk.ru) — современный OAuth VK
 if (process.env.VK_CLIENT_ID && process.env.VK_CLIENT_SECRET && process.env.VK_CALLBACK_URL) {
   passport.use(
-    new VKontakteStrategy(
+    new VKIDStrategy(
       {
         clientID: process.env.VK_CLIENT_ID,
         clientSecret: process.env.VK_CLIENT_SECRET,
         callbackURL: process.env.VK_CALLBACK_URL,
-        scope: ['email'],
+        scope: ['vkid.personal_info', 'email'],
       },
       async (
         accessToken: string,
         refreshToken: string,
-        params: VkParams,
         profile: any,
         done: (error: any, user?: any) => void
       ) => {
         try {
-          const email = params.email || null;
+          const email = profile.email || null;
+          const name = `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || profile.displayName || 'User';
           const { user, token } = await authService.findOrCreateOAuthUser(
             'vk',
-            profile.id,
+            String(profile.id),
             email,
-            `${profile.name.givenName || ''} ${profile.name.familyName || ''}`.trim() || 'User',
+            name,
             profile.photos?.[0]?.value || null
           );
 

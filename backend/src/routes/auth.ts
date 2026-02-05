@@ -110,13 +110,13 @@ router.get(
   }
 );
 
-// OAuth VK
-router.get('/vk', passport.authenticate('vkontakte', { scope: ['email'] }));
+// OAuth VK ID
+router.get('/vk', passport.authenticate('vkid'));
 
 router.get(
   '/vk/callback',
   (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('vkontakte', { session: false }, (err: any, user: any) => {
+    passport.authenticate('vkid', { session: false }, (err: any, user: any) => {
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       if (err) {
         console.error('VK OAuth error:', err);
