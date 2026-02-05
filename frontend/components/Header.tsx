@@ -13,11 +13,11 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    // Проверяем авторизацию при монтировании компонента
-    if (!user && !isLoading) {
+    // Проверяем авторизацию при монтировании — если пользователь не загружен, запрашиваем
+    if (!user) {
       checkAuth()
     }
-  }, [user, isLoading, checkAuth])
+  }, [user, checkAuth])
 
   // Закрываем меню при клике вне его
   useEffect(() => {
@@ -81,7 +81,12 @@ export function Header() {
             >
               {t('header.thankYou')}
             </a>
-            {user ? (
+            {isLoading && !user ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-pulse h-10 w-20 bg-gray-200 dark:bg-gray-600 rounded-md" />
+                <LanguageSwitcher />
+              </div>
+            ) : user ? (
               <>
                 <Link
                   href="/profile"
@@ -214,7 +219,11 @@ export function Header() {
                   <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
 
                   {/* Пункты меню в зависимости от авторизации */}
-                  {user ? (
+                  {isLoading && !user ? (
+                    <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                      ...
+                    </div>
+                  ) : user ? (
                     <>
                       <Link
                         href="/profile"
