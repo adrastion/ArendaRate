@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { reviewApi, userApi, getUploadUrl } from '@/lib/api'
+import { reviewApi, userApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
 import { Review } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
@@ -25,6 +25,7 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState('')
   const [profileError, setProfileError] = useState('')
   const [profileSuccess, setProfileSuccess] = useState('')
+  const [avatarUploading, setAvatarUploading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -53,6 +54,31 @@ export default function ProfilePage() {
       setProfileError(err.response?.data?.message || t('profile.emailError'))
     } finally {
       setEmailSaving(false)
+    }
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !file.type.startsWith('image/')) {
+      setProfileError(t('profile.avatarInvalidType'))
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileError(t('profile.avatarTooLarge'))
+      return
+    }
+    setProfileError('')
+    setProfileSuccess('')
+    setAvatarUploading(true)
+    try {
+      const res = await userApi.updateAvatar(file)
+      setUser(res.user)
+      setProfileSuccess(t('profile.avatarUpdated'))
+    } catch (err: any) {
+      setProfileError(err.response?.data?.message || t('profile.avatarError'))
+    } finally {
+      setAvatarUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -135,21 +161,35 @@ export default function ProfilePage() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center space-x-4">
-            {user?.avatar ? (
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-20 h-20 rounded-full"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-2xl font-semibold">
-                {user?.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="relative shrink-0">
+              {user?.avatar ? (
+                <img
+                  src={getAvatarUrl(user.avatar) ?? ''}
+                  alt={user.name}
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400 text-2xl font-semibold">
+                  {user?.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <label className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 sm:opacity-0 sm:hover:opacity-100 transition-opacity cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarChange}
+                  disabled={avatarUploading}
+                  className="sr-only"
+                />
+                <span className="text-white text-xs font-medium px-2 text-center">
+                  {avatarUploading ? t('profile.saving') : t('profile.changeAvatar')}
+                </span>
+              </label>
+            </div>
+            <div className="min-w-0 flex-1">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{user?.name}</h2>
-              <p className="text-gray-500 dark:text-gray-400">{user?.email || t('profile.emailNotSet')}</p>
+              <p className="text-gray-500 dark:text-gray-400 break-words">{user?.email || t('profile.emailNotSet')}</p>
             </div>
           </div>
 

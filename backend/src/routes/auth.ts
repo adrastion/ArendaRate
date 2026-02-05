@@ -95,18 +95,18 @@ router.get('/yandex', passport.authenticate('yandex'));
 
 router.get(
   '/yandex/callback',
-  passport.authenticate('yandex', { session: false }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const token = (req.user as any)?.token;
-      if (!token) {
-        throw createError('OAuth callback did not return token', 500);
-      }
+  (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('yandex', { session: false }, (err: any, user: any) => {
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
-    } catch (error) {
-      next(error);
-    }
+      if (err) {
+        console.error('Yandex OAuth error:', err);
+        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      }
+      if (!user?.token) {
+        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      }
+      res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
+    })(req, res, next);
   }
 );
 
@@ -115,18 +115,18 @@ router.get('/vk', passport.authenticate('vkontakte', { scope: ['email'] }));
 
 router.get(
   '/vk/callback',
-  passport.authenticate('vkontakte', { session: false }),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const token = (req.user as any)?.token;
-      if (!token) {
-        throw createError('OAuth callback did not return token', 500);
-      }
+  (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('vkontakte', { session: false }, (err: any, user: any) => {
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
-    } catch (error) {
-      next(error);
-    }
+      if (err) {
+        console.error('VK OAuth error:', err);
+        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      }
+      if (!user?.token) {
+        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      }
+      res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
+    })(req, res, next);
   }
 );
 

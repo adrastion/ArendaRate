@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Script from 'next/script'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 
 export default function LoginPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { login } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,74 +17,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    let cancelled = false
-
-    function initVKID() {
-      if (cancelled) return
-
-      const container = document.getElementById('vkid-one-tap-container')
-      if (!container) {
-        // Ждём, пока React отрисует контейнер
-        requestAnimationFrame(initVKID)
-        return
-      }
-
-      // @ts-expect-error VKIDSDK добавляется внешним скриптом
-      if (typeof window === 'undefined' || !window.VKIDSDK) {
-        setTimeout(initVKID, 100)
-        return
-      }
-
-      // Чтобы не инициализировать виджет повторно в тот же контейнер
-      if ((container as HTMLElement).dataset.vkidInitialized === 'true') {
-        return
-      }
-      ;(container as HTMLElement).dataset.vkidInitialized = 'true'
-
-      // @ts-expect-error VKIDSDK добавляется внешним скриптом
-      const VKID = window.VKIDSDK
-
-      VKID.Config.init({
-        app: 54435093,
-        redirectUrl: 'https://arendarate.ru/api/auth/vk/callback',
-        responseMode: VKID.ConfigResponseMode.Callback,
-        source: VKID.ConfigSource.LOWCODE,
-        scope: '',
-      })
-
-      const oneTap = new VKID.OneTap()
-
-      function vkidOnSuccess(data: any) {
-        console.log('VKID success', data)
-      }
-
-      function vkidOnError(error: any) {
-        console.error('VKID error', error)
-      }
-
-      oneTap
-        .render({
-          container,
-          fastAuthEnabled: false,
-          showAlternativeLogin: true,
-        })
-        .on(VKID.WidgetEvents.ERROR, vkidOnError)
-        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload: any) {
-          const code = payload.code
-          const deviceId = payload.device_id
-
-          VKID.Auth.exchangeCode(code, deviceId)
-            .then(vkidOnSuccess)
-            .catch(vkidOnError)
-        })
+    const oauthError = searchParams.get('error')
+    if (oauthError === 'oauth_failed') {
+      setError(t('login.oauthError'))
+      window.history.replaceState({}, '', '/login')
     }
-
-    initVKID()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  }, [searchParams, t])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -190,15 +128,13 @@ export default function LoginPage() {
             >
               {t('login.yandex')}
             </button>
-
-            <div className="space-y-2">
-              <div id="vkid-one-tap-container" />
-
-              <Script
-                src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"
-                strategy="afterInteractive"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => handleOAuth('vk')}
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            >
+              {t('login.vk')}
+            </button>
           </div>
 
           <div className="text-center">

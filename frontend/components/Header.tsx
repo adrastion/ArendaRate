@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
+import { getAvatarUrl } from '@/lib/api'
 import { useTranslation } from '@/lib/useTranslation'
 import { ThemeToggle } from './ThemeToggle'
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -96,7 +97,7 @@ export function Header() {
                   {user.avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={user.avatar}
+                      src={getAvatarUrl(user.avatar) ?? user.avatar}
                       alt={user.name}
                       className="w-10 h-10 object-cover"
                       loading="lazy"
@@ -235,7 +236,7 @@ export function Header() {
                           {user.avatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={user.avatar}
+                              src={getAvatarUrl(user.avatar) ?? user.avatar}
                               alt={user.name}
                               className="w-8 h-8 object-cover"
                               loading="lazy"

@@ -240,7 +240,7 @@ export function MapPage() {
         </div>
 
         {isLoadingAddress && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div className="absolute left-1/2 transform -translate-x-1/2 z-50 pointer-events-none" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
             <div className="pointer-events-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
@@ -251,7 +251,7 @@ export function MapPage() {
         )}
         
         {selectedAddress && !isLoadingAddress && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none">
+          <div className="absolute left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none" style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
             <div className="pointer-events-auto">
               <ApartmentList
                 address={selectedAddress.address}

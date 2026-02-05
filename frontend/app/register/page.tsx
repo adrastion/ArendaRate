@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Script from 'next/script'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 
@@ -28,71 +27,6 @@ export default function RegisterPage() {
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`
     window.location.href = `${baseUrl}/auth/${provider}`
   }
-
-  useEffect(() => {
-    let cancelled = false
-
-    function initVKID() {
-      if (cancelled) return
-
-      const container = document.getElementById('vkid-one-tap-container-register')
-      if (!container) {
-        requestAnimationFrame(initVKID)
-        return
-      }
-
-      // @ts-expect-error VKIDSDK добавляется внешним скриптом
-      if (typeof window === 'undefined' || !window.VKIDSDK) {
-        setTimeout(initVKID, 100)
-        return
-      }
-
-      if ((container as HTMLElement).dataset.vkidInitialized === 'true') return
-      ;(container as HTMLElement).dataset.vkidInitialized = 'true'
-
-      // @ts-expect-error VKIDSDK добавляется внешним скриптом
-      const VKID = window.VKIDSDK
-
-      VKID.Config.init({
-        app: 54435093,
-        redirectUrl: 'https://arendarate.ru/api/auth/vk/callback',
-        responseMode: VKID.ConfigResponseMode.Callback,
-        source: VKID.ConfigSource.LOWCODE,
-        scope: '',
-      })
-
-      const oneTap = new VKID.OneTap()
-
-      function vkidOnSuccess(data: any) {
-        console.log('VKID success', data)
-      }
-
-      function vkidOnError(error: any) {
-        console.error('VKID error', error)
-      }
-
-      oneTap
-        .render({
-          container,
-          fastAuthEnabled: false,
-          showAlternativeLogin: true,
-        })
-        .on(VKID.WidgetEvents.ERROR, vkidOnError)
-        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload: any) {
-          const code = payload.code
-          const deviceId = payload.device_id
-
-          VKID.Auth.exchangeCode(code, deviceId)
-            .then(vkidOnSuccess)
-            .catch(vkidOnError)
-        })
-    }
-
-    initVKID()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -288,15 +222,13 @@ export default function RegisterPage() {
             >
               {t('register.yandex')}
             </button>
-
-            <div className="space-y-2">
-              <div id="vkid-one-tap-container-register" />
-
-              <Script
-                src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"
-                strategy="afterInteractive"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => handleOAuth('vk')}
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            >
+              {t('register.vk')}
+            </button>
           </div>
 
           <div className="text-center">

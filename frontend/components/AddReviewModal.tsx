@@ -255,9 +255,9 @@ export function AddReviewModal({
 
   if (step === 1) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
+        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[min(90vh,90dvh)] overflow-y-auto">
+          <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('addReview.title')} - {t('addReview.step1Title')}</h2>
 
             <div className="mb-4">
@@ -285,11 +285,11 @@ export function AddReviewModal({
                           <span className="text-gray-400 dark:text-gray-500">{t('apartmentList.noReviews')}</span>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <input
                           type="text"
                           placeholder={t('addReview.apartmentNumber')}
-                          className="flex-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                          className="min-w-0 flex-1 px-3 py-2 sm:py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                           onKeyPress={(e) => {
                             if (e.key === 'Enter') {
                               const apartmentNumber = (e.target as HTMLInputElement).value
@@ -310,7 +310,7 @@ export function AddReviewModal({
                               alert(t('addReview.enterApartmentNumber'))
                             }
                           }}
-                          className="px-4 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
+                          className="shrink-0 px-4 py-2 sm:py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
                         >
                           {t('addReview.select')}
                         </button>
@@ -326,10 +326,10 @@ export function AddReviewModal({
               ) : null}
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 {t('common.cancel')}
               </button>
@@ -341,9 +341,9 @@ export function AddReviewModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[min(90vh,90dvh)] overflow-y-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t('addReview.title')} - {t('addReview.step2Title')}</h2>
 
           {selectedAddress && (
@@ -433,7 +433,7 @@ export function AddReviewModal({
           </div>
 
           {/* Период проживания */}
-          <div className="mb-6 grid grid-cols-2 gap-4">
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('addReview.periodFromLabel')}
@@ -494,18 +494,18 @@ export function AddReviewModal({
             )}
           </div>
 
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-4">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 shrink-0"
             >
               {t('common.back')}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 shrink-0"
             >
               {t('common.cancel')}
             </button>
@@ -537,7 +537,7 @@ export function AddReviewModal({
                   return false
                 }
               }}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 shrink-0"
             >
               {isSubmitting ? t('addReview.submitting') : t('addReview.submit')}
             </button>

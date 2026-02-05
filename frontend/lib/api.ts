@@ -10,6 +10,13 @@ export function getUploadUrl(path: string): string {
   return `${baseForUploads}${path.startsWith('/') ? path : `/${path}`}`
 }
 
+/** URL аватарки: полные URL (OAuth) — как есть, относительные — через getUploadUrl */
+export function getAvatarUrl(avatar: string | null | undefined): string | null {
+  if (!avatar) return null
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar
+  return getUploadUrl(avatar)
+}
+
 // Убираем /api из baseURL, так как NEXT_PUBLIC_API_URL уже содержит полный путь к API
 // Для localhost: NEXT_PUBLIC_API_URL=http://localhost:3001 (без /api)
 // Для production: NEXT_PUBLIC_API_URL=https://arendrate.ru/api (с /api)
@@ -105,6 +112,14 @@ export const authApi = {
 export const userApi = {
   updateEmail: async (email: string): Promise<{ user: User }> => {
     const response = await api.put('/user/me/email', { email })
+    return response.data
+  },
+  updateAvatar: async (file: File): Promise<{ user: User }> => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    const response = await api.post('/upload/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return response.data
   },
   updatePassword: async (data: {

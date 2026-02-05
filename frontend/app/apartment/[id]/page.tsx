@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { apartmentApi, moderationApi, getUploadUrl } from '@/lib/api'
+import { apartmentApi, moderationApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
 import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Apartment, Review } from '@/types'
 import { RatingCriterion } from '@/types'
@@ -139,7 +139,7 @@ export default function ApartmentPage() {
                   <div className="flex items-center space-x-3">
                     {review.user.avatar ? (
                       <img
-                        src={review.user.avatar}
+                        src={getAvatarUrl(review.user.avatar) ?? review.user.avatar ?? ''}
                         alt={review.user.name}
                         className="w-10 h-10 rounded-full"
                         loading="lazy"

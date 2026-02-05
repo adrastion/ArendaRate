@@ -6,6 +6,11 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  /* Safe area для мобильных браузеров (Яндекс, Safari и др.) */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
 }
 
 .dark {
@@ -14,8 +19,15 @@
   --background-end-rgb: 17, 24, 39;
 }
 
+html {
+  /* Учёт safe-area для мобильных браузеров (Яндекс и др.) */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 body {
   color: rgb(var(--foreground-rgb));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: linear-gradient(
       to bottom,
       transparent,
@@ -111,19 +123,19 @@ html:not(.dark) .logo-rate {
 }
 
 /* Контейнеры контролов карты: fixed + высокий z-index, чтобы быть поверх кнопки «Добавить отзыв» */
-/* Кнопки масштаба (слева) — выше; переключатель слоёв и атрибуция (справа) — под ними */
+/* Учитываем safe-area для мобильных браузеров (Яндекс и др.) */
 .leaflet-bottom.leaflet-left {
   position: fixed !important;
-  left: 10px !important;
-  bottom: 20px !important;
+  left: calc(10px + env(safe-area-inset-left, 0px)) !important;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
   margin: 0 !important;
   z-index: 10000 !important;
 }
 
 .leaflet-bottom.leaflet-right {
   position: fixed !important;
-  right: 10px !important;
-  bottom: 20px !important;
+  right: calc(10px + env(safe-area-inset-right, 0px)) !important;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
   margin: 0 !important;
   z-index: 9998 !important;
 }
@@ -223,5 +235,21 @@ html:not(.dark) .logo-rate {
 .apartment-list,
 .apartment-list * {
   pointer-events: auto !important;
+}
+
+/* min-h-screen и h-screen с учётом динамического viewport (100dvh) для мобильных браузеров */
+.min-h-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-screen {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* padding-bottom для контента, чтобы не уходить под интерфейс браузера */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 

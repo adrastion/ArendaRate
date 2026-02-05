@@ -79,6 +79,40 @@ router.post(
   }
 );
 
+// Загрузка аватарки пользователя
+router.post(
+  '/avatar',
+  authenticate,
+  upload.single('avatar'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        throw createError('No avatar file uploaded', 400);
+      }
+
+      const avatarUrl = `/uploads/${file.filename}`;
+
+      const user = await prisma.user.update({
+        where: { id: req.user!.id },
+        data: { avatar: avatarUrl },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          avatar: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      res.json({ user });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // Связывание фото с отзывом (вызывается после создания отзыва)
 router.post(
   '/photos/link',

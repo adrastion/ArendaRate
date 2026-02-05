@@ -93,9 +93,9 @@ export function EditReviewModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[min(90vh,90dvh)] overflow-y-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('editReview.title')}</h2>
             <button
