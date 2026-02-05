@@ -170,23 +170,23 @@ export default function ProfilePage() {
           <div className="mt-6 grid gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('profile.emailLabel')}</label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   value={emailDraft}
                   onChange={(e) => setEmailDraft(e.target.value)}
                   placeholder={t('profile.emailPlaceholder')}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  className="min-w-0 flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <button
                   type="button"
                   onClick={saveEmail}
                   disabled={emailSaving}
-                  className="px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+                  className="shrink-0 px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
                 >
                   {emailSaving ? t('profile.saving') : t('profile.save')}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
                 {t('profile.emailHint')}
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function ProfilePage() {
                   {passwordSaving ? t('profile.saving') : t('profile.savePassword')}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-500 break-words">
                 {t('profile.passwordHint')}
               </p>
             </div>
