@@ -37,9 +37,11 @@ export async function getServerStatsText(): Promise<string> {
 
     const loadAvg = load.avgLoad !== undefined ? load.avgLoad.toFixed(2) : '—';
     const cpuUsage = load.currentLoad !== undefined ? `${load.currentLoad.toFixed(1)}%` : '—';
-    const memUsed = mem.used ? formatBytes(mem.used) : '—';
+    // На Linux считаем занятость как (total - available), как в команде free — без учёта кэша/буферов
+    const memUsedBytes = mem.total && mem.available != null ? mem.total - mem.available : mem.used ?? 0;
+    const memUsed = mem.total ? formatBytes(memUsedBytes) : '—';
     const memTotal = mem.total ? formatBytes(mem.total) : '—';
-    const memPercent = mem.total && mem.used ? ((mem.used / mem.total) * 100).toFixed(1) : '—';
+    const memPercent = mem.total && mem.total > 0 ? ((memUsedBytes / mem.total) * 100).toFixed(1) : '—';
     const diskUsed = fs ? `${((fs.used / fs.size) * 100).toFixed(1)}%` : '—';
     const diskFree = fs ? formatBytes(fs.available) : '—';
     const diskTotal = fs ? formatBytes(fs.size) : '—';
