@@ -102,12 +102,9 @@ router.get(
           apartments: {
             include: {
               reviews: {
-                // Для авторизованных пользователей показываем все отзывы (включая PENDING)
-                // чтобы новые отзывы сразу появлялись на карте
-                // Для неавторизованных - только APPROVED
-                where: req.user ? undefined : {
-                  status: 'APPROVED',
-                },
+                where: req.user
+                  ? { status: { in: ['APPROVED', 'PENDING'] } }
+                  : { status: 'APPROVED' },
               },
             },
           },
@@ -170,11 +167,9 @@ router.get(
                 apartments: {
                   include: {
                     reviews: {
-                      // Для авторизованных показываем все отзывы (включая PENDING)
-                      // Для неавторизованных - только APPROVED
-                      where: req.user ? undefined : {
-                        status: 'APPROVED',
-                      },
+                      where: req.user
+                        ? { status: { in: ['APPROVED', 'PENDING'] } }
+                        : { status: 'APPROVED' },
                     },
                   },
                 },
@@ -353,12 +348,10 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
           apartments: {
             include: {
               reviews: {
-                // Для авторизованных пользователей показываем все отзывы (включая PENDING)
-                // чтобы новые отзывы сразу появлялись на карте
-                // Для неавторизованных - только APPROVED
-                where: req.user ? undefined : {
-                  status: 'APPROVED',
-                },
+                // Отклонённые (REJECTED) не показываем на карте. Для авторизованных — APPROVED + PENDING, для остальных — только APPROVED
+                where: req.user
+                  ? { status: { in: ['APPROVED', 'PENDING'] } }
+                  : { status: 'APPROVED' },
               },
             },
           },
@@ -371,12 +364,9 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
           apartments: {
             include: {
               reviews: {
-                // Для авторизованных пользователей показываем все отзывы (включая PENDING)
-                // чтобы новые отзывы сразу появлялись на карте
-                // Для неавторизованных - только APPROVED
-                where: req.user ? undefined : {
-                  status: 'APPROVED',
-                },
+                where: req.user
+                  ? { status: { in: ['APPROVED', 'PENDING'] } }
+                  : { status: 'APPROVED' },
               },
             },
           },
@@ -387,26 +377,12 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
     const markers = addresses
       .filter((addr) => addr.latitude && addr.longitude)
       .map((address) => {
-        // Для авторизованных считаем все отзывы (включая PENDING)
-        // Для неавторизованных - только APPROVED
-        const allReviewsCount = address.apartments.reduce(
+        const reviewsCount = address.apartments.reduce(
           (sum, apt) => sum + apt.reviews.length,
           0
         );
 
-        // Для фильтрации используем APPROVED отзывы (чтобы не показывать адреса только с PENDING для неавторизованных)
-        const approvedReviewsCount = address.apartments.reduce(
-          (sum, apt) => sum + apt.reviews.filter(r => r.status === 'APPROVED').length,
-          0
-        );
-
-        // Для авторизованных показываем маркер если есть хотя бы один отзыв любого статуса
-        // Для неавторизованных - только если есть APPROVED отзывы
-        const shouldShow = req.user 
-          ? allReviewsCount > 0 
-          : approvedReviewsCount > 0;
-
-        if (!shouldShow) {
+        if (reviewsCount === 0) {
           return null;
         }
 
@@ -415,8 +391,8 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
           latitude: address.latitude!,
           longitude: address.longitude!,
           apartmentsCount: address.apartments.length,
-          reviewsCount: req.user ? allReviewsCount : approvedReviewsCount, // Для авторизованных показываем все, для остальных - только APPROVED
-          isActive: !!req.user, // Активна только для авторизованных
+          reviewsCount,
+          isActive: !!req.user,
         };
       })
       .filter((marker): marker is NonNullable<typeof marker> => marker !== null); // Убираем null значения

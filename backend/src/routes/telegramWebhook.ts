@@ -117,14 +117,16 @@ router.post('/', async (req: Request, res: Response) => {
       }
 
       if (text === '/users' || text === '/stats' || text === '/start') {
-        const [usersCount, pendingCount] = await Promise.all([
+        const [usersCount, pendingCount, onMapCount] = await Promise.all([
           prisma.user.count(),
           prisma.review.count({ where: { status: ReviewStatus.PENDING } }),
+          prisma.review.count({ where: { status: { in: [ReviewStatus.APPROVED, ReviewStatus.PENDING] } } }),
         ]);
         const reply = [
           '📊 <b>Статистика</b>',
           '',
           `👥 Зарегистрировано пользователей: <b>${usersCount}</b>`,
+          `📝 Отзывов на карте: <b>${onMapCount}</b>`,
           `⏳ Отзывов на модерации: <b>${pendingCount}</b>`,
           '',
           'Команды: /users или /stats — эта сводка.',
