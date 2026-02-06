@@ -6,11 +6,15 @@ import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 import { VKOneTap } from '@/components/VKOneTap'
+import { LandlordSubscriptionModal } from '@/components/LandlordSubscriptionModal'
+
+type UserType = 'renter' | 'landlord'
 
 export default function RegisterPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { register } = useAuthStore()
+  const [userType, setUserType] = useState<UserType>('renter')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,18 +25,21 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false)
+  const [subscriptionStep, setSubscriptionStep] = useState<'info' | 'plan'>('info')
 
-  const handleOAuth = (provider: 'yandex') => {
+  const handleOAuth = (provider: 'yandex' | 'vk') => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`
-    window.location.href = `${baseUrl}/auth/${provider}`
+    const params = userType === 'landlord' ? '?userType=landlord' : ''
+    window.location.href = `${baseUrl}/auth/${provider}${params}`
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, landlordPlan?: { planType: number; amount: number }) => {
     e.preventDefault()
     setError('')
 
@@ -57,6 +64,13 @@ export default function RegisterPage() {
       return
     }
 
+    // Для арендодателя без выбранного плана — открываем модалку
+    if (userType === 'landlord' && !landlordPlan) {
+      setSubscriptionStep('info')
+      setSubscriptionModalOpen(true)
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -65,6 +79,37 @@ export default function RegisterPage() {
         password: formData.password,
         name: formData.name,
         dateOfBirth: formData.dateOfBirth,
+        userType,
+        ...(userType === 'landlord' && landlordPlan && {
+          landlordPlan: { planType: landlordPlan.planType, amount: landlordPlan.amount },
+        }),
+      })
+      router.push('/')
+    } catch (err: any) {
+      setError(err.response?.data?.message || t('register.error'))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubscriptionNext = () => setSubscriptionStep('plan')
+  const handleSubscriptionBack = () => setSubscriptionStep('info')
+  const handleSelectPlan = async (planType: number, amount: number, _password?: string, promoCode?: string) => {
+    setSubscriptionModalOpen(false)
+    setError('')
+    if (!acceptedTerms || formData.password !== formData.confirmPassword) return
+    const birthDate = new Date(formData.dateOfBirth)
+    const age = new Date().getFullYear() - birthDate.getFullYear()
+    if (age < 18) return
+    setIsLoading(true)
+    try {
+      await register({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        dateOfBirth: formData.dateOfBirth,
+        userType: 'landlord',
+        landlordPlan: { planType, amount, promoCode },
       })
       router.push('/')
     } catch (err: any) {
@@ -93,8 +138,39 @@ export default function RegisterPage() {
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             {t('register.over18')}
           </p>
+
+          <div className="mt-6 flex justify-center">
+            <div
+              role="group"
+              aria-label={t('register.title')}
+              className="inline-flex p-1.5 rounded-xl bg-gray-200/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600"
+            >
+              <button
+                type="button"
+                onClick={() => setUserType('renter')}
+                className={`relative min-w-[120px] sm:min-w-[140px] px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ease-out ${
+                  userType === 'renter'
+                    ? 'bg-primary-600 text-white shadow shadow-primary-900/20 dark:shadow-primary-900/40'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100/60 dark:hover:bg-gray-600/40'
+                }`}
+              >
+                {t('register.asRenter')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserType('landlord')}
+                className={`relative min-w-[120px] sm:min-w-[140px] px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ease-out ${
+                  userType === 'landlord'
+                    ? 'bg-primary-600 text-white shadow shadow-primary-900/20 dark:shadow-primary-900/40'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100/60 dark:hover:bg-gray-600/40'
+                }`}
+              >
+                {t('register.asLandlord')}
+              </button>
+            </div>
+          </div>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={(e) => handleSubmit(e)}>
           {error && (
             <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
               {error}
@@ -185,7 +261,11 @@ export default function RegisterPage() {
               disabled={isLoading || !acceptedTerms}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {isLoading ? t('register.registering') : t('register.submit')}
+              {isLoading
+                ? t('register.registering')
+                : userType === 'landlord'
+                  ? t('register.subscribe')
+                  : t('register.submit')}
             </button>
           </div>
 
@@ -217,14 +297,17 @@ export default function RegisterPage() {
           <div className="grid grid-cols-1 gap-4">
             <button
               type="button"
+              disabled={!acceptedTerms}
               onClick={() => handleOAuth('yandex')}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('register.yandex')}
             </button>
             <div className="flex justify-center">
               <VKOneTap
                 contentId="SIGN_UP"
+                disabled={!acceptedTerms}
+                userType={userType}
                 onError={(err) => {
                   console.error('VK One Tap error:', err)
                   setError(t('register.oauthError'))
@@ -242,6 +325,15 @@ export default function RegisterPage() {
             </Link>
           </div>
         </form>
+
+        <LandlordSubscriptionModal
+          isOpen={subscriptionModalOpen}
+          onClose={() => setSubscriptionModalOpen(false)}
+          step={subscriptionStep}
+          onNext={handleSubscriptionNext}
+          onSelectPlan={handleSelectPlan}
+          onBack={subscriptionStep === 'plan' ? handleSubscriptionBack : undefined}
+        />
       </div>
     </div>
   )

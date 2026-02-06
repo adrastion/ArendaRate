@@ -2,25 +2,24 @@
 
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuthStore } from '@/store/authStore'
+import { auth } from '@/lib/auth'
 
 export default function AuthCallbackPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { setUser } = useAuthStore()
 
   useEffect(() => {
     const token = searchParams.get('token')
+    const needLandlordPlan = searchParams.get('needLandlordPlan') === '1'
     if (token) {
-      // Сохранение токена
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', token)
+      auth.setToken(token)
+      if (needLandlordPlan) {
+        router.replace('/auth/complete-landlord')
+        return
       }
-      // Перенаправление на главную страницу
-      router.push('/')
+      router.replace('/')
     } else {
-      // Если токена нет, перенаправляем на страницу входа
-      router.push('/login')
+      router.replace('/login')
     }
   }, [searchParams, router])
 

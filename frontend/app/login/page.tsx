@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [asLandlord, setAsLandlord] = useState(false)
 
   useEffect(() => {
     const oauthError = searchParams.get('error')
@@ -40,10 +41,11 @@ export default function LoginPage() {
     }
   }
 
-  const handleOAuth = (provider: 'yandex') => {
+  const handleOAuth = (provider: 'yandex' | 'vk') => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`
-    window.location.href = `${baseUrl}/auth/${provider}`
+    const params = asLandlord ? '?userType=landlord' : ''
+    window.location.href = `${baseUrl}/auth/${provider}${params}`
   }
 
   return (
@@ -62,6 +64,37 @@ export default function LoginPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
             {t('login.title')}
           </h2>
+
+          <div className="mt-6 flex justify-center">
+            <div
+              role="group"
+              aria-label={t('login.title')}
+              className="inline-flex p-1.5 rounded-xl bg-gray-200/80 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600"
+            >
+              <button
+                type="button"
+                onClick={() => setAsLandlord(false)}
+                className={`relative min-w-[120px] sm:min-w-[140px] px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ease-out ${
+                  !asLandlord
+                    ? 'bg-primary-600 text-white shadow shadow-primary-900/20 dark:shadow-primary-900/40'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100/60 dark:hover:bg-gray-600/40'
+                }`}
+              >
+                {t('register.asRenter')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAsLandlord(true)}
+                className={`relative min-w-[120px] sm:min-w-[140px] px-4 sm:px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ease-out ${
+                  asLandlord
+                    ? 'bg-primary-600 text-white shadow shadow-primary-900/20 dark:shadow-primary-900/40'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100/60 dark:hover:bg-gray-600/40'
+                }`}
+              >
+                {t('register.asLandlord')}
+              </button>
+            </div>
+          </div>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
@@ -131,6 +164,7 @@ export default function LoginPage() {
             <div className="flex justify-center">
               <VKOneTap
                 contentId="SIGN_IN"
+                userType={asLandlord ? 'landlord' : undefined}
                 onError={(err) => {
                   console.error('VK One Tap error:', err)
                   setError(t('login.oauthError'))

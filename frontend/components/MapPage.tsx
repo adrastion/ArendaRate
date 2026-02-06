@@ -11,6 +11,7 @@ import { ApartmentList } from './ApartmentList'
 import { AddReviewButton } from './AddReviewButton'
 import { AddReviewModal } from './AddReviewModal'
 import { useTranslation } from '@/lib/useTranslation'
+import { UserRole } from '@/types'
 
 function MapLoadingPlaceholder() {
   const { t } = useTranslation()
@@ -213,7 +214,7 @@ export function MapPage() {
               userLocation={userLocation}
             />
             </div>
-            {user && (
+            {user && user.role !== UserRole.LANDLORD && (
               <div className="md:hidden absolute top-0 right-0">
                 <AddReviewButton onClick={() => setShowAddReview(true)} />
               </div>
@@ -221,7 +222,7 @@ export function MapPage() {
           </div>
         </div>
 
-        {user && (
+        {user && user.role !== UserRole.LANDLORD && (
           <div className="hidden md:block absolute top-4 right-4 z-10 pointer-events-none">
             <div className="pointer-events-auto">
               <AddReviewButton onClick={() => setShowAddReview(true)} />

@@ -93,6 +93,8 @@ export const authApi = {
     password: string
     name: string
     dateOfBirth: string
+    userType?: 'renter' | 'landlord'
+    landlordPlan?: { planType: number; amount: number; promoCode?: string }
   }) => {
     const response = await api.post('/auth/register', data)
     return response.data
@@ -108,9 +110,36 @@ export const authApi = {
     return response.data
   },
 
-  /** VK ID One Tap: обмен access_token на JWT */
-  vkTokenLogin: async (accessToken: string) => {
-    const response = await api.post('/auth/vk/token', { access_token: accessToken })
+  /** Переключиться на привязанный аккаунт (арендатор ↔ арендодатель). */
+  switchToLinked: async (): Promise<{ user: User; token: string }> => {
+    const response = await api.post('/auth/switch-to-linked')
+    return response.data
+  },
+
+  /** Создать аккаунт арендодателя и привязать к текущему арендатору. */
+  linkLandlord: async (data: {
+    password: string
+    landlordPlan: { planType: number; amount: number; promoCode?: string }
+  }): Promise<{ user: User; token: string }> => {
+    const response = await api.post('/auth/link-landlord', data)
+    return response.data
+  },
+
+  /** Создать аккаунт арендатора и привязать к текущему арендодателю (после принятия соглашения). */
+  createLinkedRenter: async (): Promise<{ user: User; token: string }> => {
+    const response = await api.post('/auth/create-linked-renter', { acceptTerms: true })
+    return response.data
+  },
+
+  /** VK ID One Tap: обмен access_token на JWT. При userType=landlord возвращает needLandlordPlan. */
+  vkTokenLogin: async (
+    accessToken: string,
+    userType?: 'renter' | 'landlord'
+  ): Promise<{ user: User; token: string; needLandlordPlan?: boolean }> => {
+    const response = await api.post('/auth/vk/token', {
+      access_token: accessToken,
+      ...(userType && { userType }),
+    })
     return response.data
   },
 }
@@ -133,6 +162,30 @@ export const userApi = {
     newPassword: string
   }): Promise<{ status: 'ok' }> => {
     const response = await api.put('/user/me/password', data)
+    return response.data
+  },
+
+  addLandlordApartment: async (apartmentId: string): Promise<{ landlordApartments: any[] }> => {
+    const response = await api.post('/user/me/landlord-apartments', { apartmentId })
+    return response.data
+  },
+
+  removeLandlordApartment: async (apartmentId: string): Promise<void> => {
+    await api.delete(`/user/me/landlord-apartments/${apartmentId}`)
+  },
+
+  getLandlordReviews: async (): Promise<{ answered: any[]; unanswered: any[] }> => {
+    const response = await api.get('/user/me/landlord-reviews')
+    return response.data
+  },
+
+  /** Докупка ответов арендодателем (planType: 1|3|5|10, amount — цена по тарифу, promoCode — опционально). */
+  landlordTopUp: async (data: {
+    planType: number
+    amount: number
+    promoCode?: string
+  }): Promise<{ responsesRemaining: number }> => {
+    const response = await api.post('/user/me/landlord-top-up', data)
     return response.data
   },
 }
@@ -260,6 +313,22 @@ export const reviewApi = {
     const response = await api.get(`/reviews/${id}`)
     return response.data
   },
+
+  reply: async (reviewId: string, text: string): Promise<{ review: Review }> => {
+    const response = await api.post(`/reviews/${reviewId}/reply`, { text })
+    cache.clear()
+    return response.data
+  },
+
+  vote: async (reviewId: string, vote: 1 | -1): Promise<{ likes: number; dislikes: number }> => {
+    const response = await api.post(`/reviews/${reviewId}/vote`, { vote })
+    cache.clear()
+    return response.data
+  },
+
+  report: async (reviewId: string, reason?: string): Promise<void> => {
+    await api.post(`/reviews/${reviewId}/report`, { reason })
+  },
 }
 
 export const uploadApi = {
@@ -306,6 +375,78 @@ export const moderationApi = {
     clearMarkersCache()
     cache.clear()
     return response.data
+  },
+}
+
+export const marketerApi = {
+  getMe: async (): Promise<{
+    marketer: {
+      id: string
+      email: string
+      percentage: number
+      promoCodes: Array<{
+        id: string
+        code: string
+        discountType: string
+        discountValue: number
+        usedCount: number
+        maxUses: number | null
+        isActive: boolean
+        createdAt: string
+      }>
+      totalSales: number
+      earnings: number
+    }
+  }> => {
+    const response = await api.get('/marketer/me')
+    return response.data
+  },
+}
+
+export const adminApi = {
+  getUsers: async (params?: { search?: string; page?: number; limit?: number }) => {
+    const response = await api.get('/admin/users', { params })
+    return response.data
+  },
+  blockUser: async (userId: string, isBlocked: boolean) => {
+    await api.patch(`/admin/users/${userId}/block`, { isBlocked })
+  },
+  setSubscription: async (userId: string, responsesRemaining: number) => {
+    const response = await api.patch(`/admin/users/${userId}/subscription`, { responsesRemaining })
+    return response.data
+  },
+  createPromo: async (data: {
+    code: string
+    discountType: 'PERCENT' | 'FIXED'
+    discountValue: number
+    maxUses?: number
+    marketerId?: string
+  }) => {
+    const response = await api.post('/admin/promo', data)
+    return response.data
+  },
+  getMarketers: async () => {
+    const response = await api.get('/admin/marketers')
+    return response.data
+  },
+  createMarketer: async (data: { email: string; percentage: number }) => {
+    const response = await api.post<{ user: { id: string; email: string }; marketer: { id: string; percentage: number }; oneTimePassword: string }>('/admin/marketers', data)
+    return response.data
+  },
+  getStatsPurchases: async () => {
+    const response = await api.get('/admin/stats/purchases')
+    return response.data
+  },
+  getStatsMarketers: async () => {
+    const response = await api.get('/admin/stats/marketers')
+    return response.data
+  },
+  getSettings: async () => {
+    const response = await api.get('/admin/settings')
+    return response.data
+  },
+  setSetting: async (key: string, value: string) => {
+    await api.patch('/admin/settings', { key, value })
   },
 }
 

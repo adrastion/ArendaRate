@@ -13,9 +13,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextF
       include: {
         address: true,
         reviews: {
-          where: {
-            status: req.user ? 'APPROVED' : undefined,
-          },
+          where: { status: 'APPROVED' },
           include: {
             user: {
               select: {
@@ -26,6 +24,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextF
             },
             ratings: true,
             photos: true,
+            landlordResponse: true,
           },
           orderBy: { createdAt: 'desc' },
         },

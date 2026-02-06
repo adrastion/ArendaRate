@@ -164,10 +164,12 @@ export default function LandingPage() {
               <span className="text-gray-900 dark:text-white">Arenda</span><span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
             </span>
           </div>
-          <nav className="flex items-center gap-6 text-sm">
+          <nav className="flex items-center gap-6 text-sm flex-wrap justify-center">
             <Link href="/map" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.map')}</Link>
             <Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.about')}</Link>
             <Link href="/reviews" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.reviews')}</Link>
+            <Link href="/user-agreement" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.userAgreement')}</Link>
+            <Link href="/contacts" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.contacts')}</Link>
           </nav>
         </div>
       </footer>

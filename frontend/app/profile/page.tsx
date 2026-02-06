@@ -6,16 +6,20 @@ import { reviewApi, userApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
 import { Review } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
+import { LandlordSubscriptionModal } from '@/components/LandlordSubscriptionModal'
 import { useAuthStore } from '@/store/authStore'
 import { EditReviewModal } from '@/components/EditReviewModal'
 import { useTranslation } from '@/lib/useTranslation'
 import Link from 'next/link'
+import { UserRole } from '@/types'
 
 export default function ProfilePage() {
   const { t } = useTranslation()
   const router = useRouter()
-  const { user, checkAuth, logout, setUser } = useAuthStore()
+  const { user, checkAuth, logout, setUser, switchToLinkedAccount, linkLandlordAccount, createLinkedRenterAccount } = useAuthStore()
   const [reviews, setReviews] = useState<Review[]>([])
+  const [landlordAnswered, setLandlordAnswered] = useState<any[]>([])
+  const [landlordUnanswered, setLandlordUnanswered] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [editingReview, setEditingReview] = useState<Review | null>(null)
   const [emailDraft, setEmailDraft] = useState('')
@@ -26,6 +30,18 @@ export default function ProfilePage() {
   const [profileError, setProfileError] = useState('')
   const [profileSuccess, setProfileSuccess] = useState('')
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [showSwitchModal, setShowSwitchModal] = useState(false)
+  const [switchStep, setSwitchStep] = useState<'info' | 'plan'>('info')
+  const [switchLoading, setSwitchLoading] = useState(false)
+  const [showRenterAgreementModal, setShowRenterAgreementModal] = useState(false)
+  const [renterAgreementAccepted, setRenterAgreementAccepted] = useState(false)
+  const [showTopUpModal, setShowTopUpModal] = useState(false)
+  const [topUpLoading, setTopUpLoading] = useState(false)
+
+  const isLandlord = user?.role === UserRole.LANDLORD
+  const isRenter = user?.role === UserRole.RENTER
+  const hasLinkedLandlord = isRenter && !!user?.linkedLandlordId
+  const hasLinkedRenter = isLandlord && !!user?.hasLinkedRenter
 
   useEffect(() => {
     let cancelled = false
@@ -38,9 +54,22 @@ export default function ProfilePage() {
       }
       setEmailDraft(currentUser.email || '')
       loadReviews()
+      if (currentUser.role === UserRole.LANDLORD) {
+        loadLandlordReviews()
+      }
     })
     return () => { cancelled = true }
   }, [checkAuth])
+
+  const loadLandlordReviews = async () => {
+    try {
+      const res = await userApi.getLandlordReviews()
+      setLandlordAnswered(res.answered)
+      setLandlordUnanswered(res.unanswered)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const saveEmail = async () => {
     setProfileError('')
@@ -150,14 +179,75 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('profile.myProfile')}</h1>
-          <button
-            onClick={logout}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
-          >
-            {t('profile.logout')}
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {isRenter && !hasLinkedLandlord && (
+              <button
+                type="button"
+                onClick={() => { setSwitchStep('info'); setShowSwitchModal(true) }}
+                disabled={switchLoading}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+              >
+                {t('landlord.switchToLandlord')}
+              </button>
+            )}
+            {isRenter && hasLinkedLandlord && (
+              <button
+                type="button"
+                onClick={async () => {
+                  setSwitchLoading(true)
+                  try {
+                    await switchToLinkedAccount()
+                    setProfileSuccess('Переключено на арендодателя')
+                    loadLandlordReviews()
+                  } catch (e: any) {
+                    setProfileError(e?.response?.data?.message || 'Ошибка переключения')
+                  } finally {
+                    setSwitchLoading(false)
+                  }
+                }}
+                disabled={switchLoading}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+              >
+                {t('landlord.switchToLandlordLinked')}
+              </button>
+            )}
+            {isLandlord && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasLinkedRenter) {
+                    setSwitchLoading(true)
+                    setProfileError('')
+                    switchToLinkedAccount()
+                      .then(() => {
+                        setProfileSuccess('Переключено на арендатора')
+                        loadReviews()
+                      })
+                      .catch((e: any) => {
+                        setProfileError(e?.response?.data?.message || e?.message || 'Ошибка переключения')
+                      })
+                      .finally(() => setSwitchLoading(false))
+                  } else {
+                    setRenterAgreementAccepted(false)
+                    setShowRenterAgreementModal(true)
+                    setProfileError('')
+                  }
+                }}
+                disabled={switchLoading}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
+              >
+                {t('landlord.switchToRenter')}
+              </button>
+            )}
+            <button
+              onClick={logout}
+              className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+            >
+              {t('profile.logout')}
+            </button>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
@@ -264,109 +354,205 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('profile.myReviews')} ({reviews.length})</h2>
-        </div>
-
-        {reviews.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-500 dark:text-gray-400">
-            {t('profile.noReviews')}
-            <div className="mt-4">
-              <Link
-                href="/map"
-                className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline"
+        {isLandlord && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">{t('landlord.myRentalAddresses')}</h2>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                {t('landlord.responsesLeft')}: <strong>{user?.landlordResponseCount ?? 0}</strong>
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowTopUpModal(true)}
+                className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700"
               >
-                {t('profile.addReviewLink')}
+                {t('landlord.topUpButton')}
+              </button>
+            </div>
+            {user?.landlordApartments?.length ? (
+              <ul className="space-y-2">
+                {user.landlordApartments.map((la: any) => (
+                  <li key={la.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                    <Link
+                      href={`/address/${la.apartment.address.id}`}
+                      className="text-primary-600 dark:text-primary-400 hover:underline"
+                    >
+                      {la.apartment.address.city}, {la.apartment.address.street}, {la.apartment.address.building}, кв. {la.apartment.number}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await userApi.removeLandlordApartment(la.apartmentId)
+                          await checkAuth()
+                          loadLandlordReviews()
+                        } catch (e) {
+                          setProfileError((e as any)?.response?.data?.message || 'Error')
+                        }
+                      }}
+                      className="text-red-600 dark:text-red-400 text-sm"
+                    >
+                      {t('common.delete')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-sm">{t('landlord.noAddresses')}</p>
+            )}
+            <p className="mt-3 text-sm">
+              <Link href="/map" className="text-primary-600 dark:text-primary-400 hover:underline">
+                {t('landlord.addAddress')} →
               </Link>
+            </p>
+            <div className="mt-6">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('landlord.unansweredReviews')} ({landlordUnanswered.length})</h3>
+              {landlordUnanswered.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Нет отзывов без ответа</p>
+              ) : (
+                <ul className="space-y-2">
+                  {landlordUnanswered.slice(0, 5).map((r: any) => (
+                    <li key={r.id}>
+                      <Link href={`/apartment/${r.apartmentId}`} className="text-primary-600 dark:text-primary-400 hover:underline text-sm">
+                        {r.apartment?.address?.city}, {r.apartment?.address?.street}, кв. {r.apartment?.number} — {r.comment?.slice(0, 50)}…
+                      </Link>
+                    </li>
+                  ))}
+                  {landlordUnanswered.length > 5 && (
+                    <li className="text-sm text-gray-500">и ещё {landlordUnanswered.length - 5}</li>
+                  )}
+                </ul>
+              )}
+            </div>
+            <div className="mt-4">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{t('landlord.answeredReviews')} ({landlordAnswered.length})</h3>
+              {landlordAnswered.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Пока нет</p>
+              ) : (
+                <ul className="space-y-2">
+                  {landlordAnswered.slice(0, 5).map((r: any) => (
+                    <li key={r.id}>
+                      <Link href={`/apartment/${r.apartmentId}`} className="text-primary-600 dark:text-primary-400 hover:underline text-sm">
+                        {r.apartment?.address?.city}, {r.apartment?.address?.street}, кв. {r.apartment?.number}
+                      </Link>
+                    </li>
+                  ))}
+                  {landlordAnswered.length > 5 && (
+                    <li className="text-sm text-gray-500">и ещё {landlordAnswered.length - 5}</li>
+                  )}
+                </ul>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {reviews.map((review) => (
-              <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">
-                      <Link
-                        href={`/apartment/${review.apartmentId}`}
-                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
-                      >
-                        {review.apartment.address.city},{' '}
-                        {review.apartment.address.street},{' '}
-                        {review.apartment.address.building}, {t('profile.aptAbbr')} {review.apartment.number}
-                      </Link>
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {t('profile.period')}:{' '}
-                      {format(new Date(review.periodFrom), 'dd.MM.yyyy')} -{' '}
-                      {format(new Date(review.periodTo), 'dd.MM.yyyy')}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                      {review.averageRating.toFixed(1)}
-                    </div>
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${getStatusColor(
-                        review.status
-                      )}`}
-                    >
-                      {getStatusLabel(review.status)}
-                    </span>
-                  </div>
-                </div>
+        )}
 
-                <p className="mb-4 text-gray-900 dark:text-gray-100">{review.comment}</p>
+        {!isLandlord && (
+          <>
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('profile.myReviews')} ({reviews.length})</h2>
+            </div>
 
-                {review.status === 'REJECTED' && review.rejectionReason && (
-                  <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded p-3 mb-4">
-                    <p className="text-sm text-red-700 dark:text-red-300">
-                      <strong>{t('profile.rejectionReason')}:</strong> {review.rejectionReason}
-                    </p>
-                  </div>
-                )}
-
-                {(review.photos?.length ?? 0) > 0 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {review.photos?.map((photo) => (
-                      <a
-                        key={photo.id}
-                        href={getUploadUrl(photo.url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block"
-                        title={t('profile.openPhoto')}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={getUploadUrl(photo.url)}
-                          alt={t('profile.photo')}
-                          className="w-full h-24 object-cover rounded-lg"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </a>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center mt-4">
-                  <div className="text-xs text-gray-400 dark:text-gray-500">
-                    {t('profile.created')}:{' '}
-                    {format(new Date(review.createdAt), 'dd.MM.yyyy HH:mm')}
-                  </div>
-                  {review.status !== 'PENDING' && (
-                    <button
-                      onClick={() => setEditingReview(review)}
-                      className="px-3 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
-                    >
-                      {t('profile.edit')}
-                    </button>
-                  )}
+            {reviews.length === 0 ? (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-500 dark:text-gray-400">
+                {t('profile.noReviews')}
+                <div className="mt-4">
+                  <Link
+                    href="/map"
+                    className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline"
+                  >
+                    {t('profile.addReviewLink')}
+                  </Link>
                 </div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-gray-100">
+                          <Link
+                            href={`/apartment/${review.apartmentId}`}
+                            className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+                          >
+                            {review.apartment.address.city},{' '}
+                            {review.apartment.address.street},{' '}
+                            {review.apartment.address.building}, {t('profile.aptAbbr')} {review.apartment.number}
+                          </Link>
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {t('profile.period')}:{' '}
+                          {format(new Date(review.periodFrom), 'dd.MM.yyyy')} -{' '}
+                          {format(new Date(review.periodTo), 'dd.MM.yyyy')}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                          {review.averageRating.toFixed(1)}
+                        </div>
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${getStatusColor(
+                            review.status
+                          )}`}
+                        >
+                          {getStatusLabel(review.status)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="mb-4 text-gray-900 dark:text-gray-100">{review.comment}</p>
+
+                    {review.status === 'REJECTED' && review.rejectionReason && (
+                      <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded p-3 mb-4">
+                        <p className="text-sm text-red-700 dark:text-red-300">
+                          <strong>{t('profile.rejectionReason')}:</strong> {review.rejectionReason}
+                        </p>
+                      </div>
+                    )}
+
+                    {(review.photos?.length ?? 0) > 0 && (
+                      <div className="grid grid-cols-4 gap-2">
+                        {review.photos?.map((photo) => (
+                          <a
+                            key={photo.id}
+                            href={getUploadUrl(photo.url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                            title={t('profile.openPhoto')}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={getUploadUrl(photo.url)}
+                              alt={t('profile.photo')}
+                              className="w-full h-24 object-cover rounded-lg"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="text-xs text-gray-400 dark:text-gray-500">
+                        {t('profile.created')}:{' '}
+                        {format(new Date(review.createdAt), 'dd.MM.yyyy HH:mm')}
+                      </div>
+                      {review.status !== 'PENDING' && (
+                        <button
+                          onClick={() => setEditingReview(review)}
+                          className="px-3 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
+                        >
+                          {t('profile.edit')}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {editingReview && (
@@ -379,6 +565,116 @@ export default function ProfilePage() {
             }}
           />
         )}
+
+        {showRenterAgreementModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                {t('profile.createRenterAccountTitle')}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                {t('profile.createRenterAccountDesc')}
+              </p>
+              <p className="mb-4">
+                <Link
+                  href="/user-agreement"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  {t('register.acceptTermsLink')}
+                </Link>
+              </p>
+              <label className="flex items-center gap-2 mb-6 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={renterAgreementAccepted}
+                  onChange={(e) => setRenterAgreementAccepted(e.target.checked)}
+                  className="rounded border-gray-300 dark:border-gray-600 text-primary-600"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">{t('profile.acceptTermsToCreateRenter')}</span>
+              </label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowRenterAgreementModal(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  disabled={!renterAgreementAccepted || switchLoading}
+                  onClick={async () => {
+                    setSwitchLoading(true)
+                    setProfileError('')
+                    try {
+                      await createLinkedRenterAccount()
+                      setShowRenterAgreementModal(false)
+                      setProfileSuccess('Аккаунт арендатора создан. Переключено.')
+                      loadReviews()
+                    } catch (e: any) {
+                      setProfileError(e?.response?.data?.message || 'Ошибка создания аккаунта')
+                    } finally {
+                      setSwitchLoading(false)
+                    }
+                  }}
+                  className="flex-1 py-2 px-4 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {switchLoading ? t('common.loading') : t('profile.createRenterAccountSubmit')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <LandlordSubscriptionModal
+          isOpen={showSwitchModal}
+          onClose={() => setShowSwitchModal(false)}
+          step={switchStep}
+          onNext={() => setSwitchStep('plan')}
+          onSelectPlan={async (planType, amount, password, promoCode) => {
+            if (!password || password.length < 6) return
+            setSwitchLoading(true)
+            try {
+              await linkLandlordAccount({ password, landlordPlan: { planType, amount, promoCode } })
+              setShowSwitchModal(false)
+              setProfileSuccess('Аккаунт арендодателя создан и привязан')
+              loadLandlordReviews()
+            } catch (e: any) {
+              setProfileError(e?.response?.data?.message || 'Ошибка создания аккаунта')
+            } finally {
+              setSwitchLoading(false)
+            }
+          }}
+          onBack={() => setSwitchStep('info')}
+          mode="link"
+          showPromoCode={user?.promoCodeFieldEnabled !== false}
+        />
+
+        <LandlordSubscriptionModal
+          isOpen={showTopUpModal}
+          onClose={() => !topUpLoading && setShowTopUpModal(false)}
+          step="plan"
+          onNext={() => {}}
+          onSelectPlan={async (planType, amount, _password, promoCode) => {
+            setTopUpLoading(true)
+            setProfileError('')
+            try {
+              await userApi.landlordTopUp({ planType, amount, promoCode: promoCode || undefined })
+              await checkAuth()
+              setShowTopUpModal(false)
+              setProfileSuccess(t('landlord.topUpSuccess'))
+              loadLandlordReviews()
+            } catch (e: any) {
+              setProfileError(e?.response?.data?.message || 'Ошибка докупки')
+            } finally {
+              setTopUpLoading(false)
+            }
+          }}
+          mode="topUp"
+          showPromoCode={user?.promoCodeFieldEnabled !== false}
+        />
       </div>
     </div>
   )

@@ -3,8 +3,10 @@
 export enum UserRole {
   GUEST = 'GUEST',
   RENTER = 'RENTER',
+  LANDLORD = 'LANDLORD',
   MODERATOR = 'MODERATOR',
   ADMIN = 'ADMIN',
+  MARKETER = 'MARKETER',
 }
 
 export enum ReviewStatus {
@@ -29,6 +31,20 @@ export interface User {
   avatar: string | null;
   role: UserRole;
   createdAt: string;
+  landlordResponseCount?: number | null;
+  landlordApartments?: Array<{
+    id: string;
+    apartmentId: string;
+    apartment: Apartment;
+  }>;
+  /** Есть привязанный аккаунт арендодателя (только для RENTER). */
+  linkedLandlordId?: string | null;
+  /** Есть привязанный арендатор (только для LANDLORD). */
+  hasLinkedRenter?: boolean;
+  /** Показывать поле промокода при оформлении подписки (из настроек админки). */
+  promoCodeFieldEnabled?: boolean;
+  /** Требуется смена пароля (для маркетолога при первом входе). */
+  passwordChangeRequired?: boolean;
 }
 
 export interface Address {
@@ -61,6 +77,14 @@ export interface Photo {
   fileName: string;
 }
 
+export interface ReviewResponse {
+  id: string;
+  reviewId: string;
+  landlordId: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface Review {
   id: string;
   userId: string;
@@ -77,6 +101,7 @@ export interface Review {
   apartment: Apartment;
   ratings: Rating[];
   photos: Photo[];
+  landlordResponse?: ReviewResponse | null;
 }
 
 export interface CreateReviewDto {

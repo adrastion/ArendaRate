@@ -15,6 +15,10 @@ router.post(
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
     body('dateOfBirth').isISO8601().withMessage('Invalid date of birth'),
+    body('userType').optional().isIn(['renter', 'landlord']),
+    body('landlordPlan.planType').optional().isInt({ min: 1 }),
+    body('landlordPlan.amount').optional().isInt({ min: 0 }),
+    body('landlordPlan.promoCode').optional().isString(),
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -23,12 +27,23 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { user, token } = await authService.register({
+      const registerData: Parameters<typeof authService.register>[0] = {
         email: req.body.email,
         password: req.body.password,
         name: req.body.name,
         dateOfBirth: new Date(req.body.dateOfBirth),
-      });
+        userType: req.body.userType || 'renter',
+      };
+
+      if (req.body.userType === 'landlord' && req.body.landlordPlan) {
+        registerData.landlordPlan = {
+          planType: req.body.landlordPlan.planType,
+          amount: req.body.landlordPlan.amount,
+          promoCode: req.body.landlordPlan.promoCode,
+        };
+      }
+
+      const { user, token } = await authService.register(registerData);
 
       res.status(201).json({ user, token });
     } catch (error) {
@@ -63,7 +78,7 @@ router.post(
   }
 );
 
-// Получение текущего пользователя
+// Получение текущего пользователя (включая данные арендодателя)
 router.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { prisma } = await import('../lib/prisma');
@@ -77,6 +92,23 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
         avatar: true,
         role: true,
         createdAt: true,
+        isBlocked: true,
+        passwordChangeRequired: true,
+        linkedLandlordId: true,
+        landlordSubscription: {
+          select: { id: true, responsesRemaining: true },
+        },
+        landlordApartments: {
+          select: {
+            id: true,
+            apartmentId: true,
+            apartment: {
+              include: {
+                address: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -84,14 +116,117 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
       throw createError('User not found', 404);
     }
 
-    res.json({ user });
+    const { landlordSubscription, landlordApartments, ...rest } = user;
+    let hasLinkedRenter = false;
+    let displayEmail = rest.email;
+    if (rest.role === 'LANDLORD') {
+      const linked = await prisma.user.findFirst({
+        where: { linkedLandlordId: rest.id },
+        select: { id: true, email: true },
+      });
+      hasLinkedRenter = !!linked;
+      if (linked?.email) {
+        displayEmail = linked.email;
+      } else if (rest.email?.includes('@internal.arendrate')) {
+        // Не показывать внутренний email привязанного аккаунта арендодателя
+        displayEmail = null;
+      }
+    }
+    const promoSettings = await prisma.systemSettings.findUnique({
+      where: { key: 'promo_code_field_enabled' },
+    });
+    const promoCodeFieldEnabled = promoSettings?.value !== 'false';
+
+    const response = {
+      ...rest,
+      email: displayEmail,
+      landlordResponseCount: landlordSubscription?.responsesRemaining ?? null,
+      landlordApartments: landlordApartments ?? [],
+      hasLinkedRenter,
+      promoCodeFieldEnabled,
+    };
+    res.json({ user: response });
   } catch (error) {
     next(error);
   }
 });
 
+// Переключение на привязанный аккаунт (арендатор ↔ арендодатель)
+router.post('/switch-to-linked', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { user, token } = await authService.switchToLinked(req.user!.id);
+    res.json({ user, token });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Создание аккаунта арендодателя и привязка к текущему арендатору
+router.post(
+  '/link-landlord',
+  authenticate,
+  [
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('landlordPlan.planType').isInt({ min: 1 }).withMessage('Invalid plan'),
+    body('landlordPlan.amount').isInt({ min: 0 }).withMessage('Invalid amount'),
+    body('landlordPlan.promoCode').optional().isString(),
+  ],
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const { user, token } = await authService.linkLandlord(req.user!.id, {
+        password: req.body.password,
+        landlordPlan: req.body.landlordPlan,
+      });
+      res.status(201).json({ user, token });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Создание аккаунта арендатора и привязка к текущему арендодателю (после принятия соглашения)
+router.post(
+  '/create-linked-renter',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const acceptTerms = req.body?.acceptTerms;
+      if (acceptTerms !== true && acceptTerms !== 'true' && acceptTerms !== 1) {
+        return res.status(400).json({
+          message: 'Необходимо принять пользовательское соглашение',
+        });
+      }
+      const { prisma } = await import('../lib/prisma');
+      const landlord = await prisma.user.findUnique({
+        where: { id: req.user!.id },
+        select: { name: true, role: true },
+      });
+      if (!landlord || landlord.role !== 'LANDLORD') {
+        return res.status(403).json({ message: 'Only landlords can create a linked renter account' });
+      }
+      const { user, token } = await authService.createLinkedRenter(req.user!.id, landlord.name);
+      res.status(201).json({ user, token });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Сохраняем userType в сессии перед редиректом на OAuth (для арендодателя)
+function saveOAuthUserType(req: Request, res: Response, next: NextFunction) {
+  const userType = req.query.userType as string | undefined;
+  if (userType === 'landlord' && req.session) {
+    (req.session as any).oauthUserType = 'landlord';
+  }
+  next();
+}
+
 // OAuth Яндекс
-router.get('/yandex', passport.authenticate('yandex'));
+router.get('/yandex', saveOAuthUserType, passport.authenticate('yandex'));
 
 router.get(
   '/yandex/callback',
@@ -105,13 +240,18 @@ router.get(
       if (!user?.token) {
         return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
       }
+      const needLandlordPlan = (req.session as any)?.oauthUserType === 'landlord';
+      if (needLandlordPlan && req.session) {
+        delete (req.session as any).oauthUserType;
+        return res.redirect(`${frontendUrl}/auth/callback?token=${user.token}&needLandlordPlan=1`);
+      }
       res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
     })(req, res, next);
   }
 );
 
-// OAuth VK ID (классический redirect flow — оставлен для совместимости)
-router.get('/vk', passport.authenticate('vkid'));
+// OAuth VK ID (классический redirect flow)
+router.get('/vk', saveOAuthUserType, passport.authenticate('vkid'));
 
 router.get(
   '/vk/callback',
@@ -125,6 +265,11 @@ router.get(
       if (!user?.token) {
         return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
       }
+      const needLandlordPlan = (req.session as any)?.oauthUserType === 'landlord';
+      if (needLandlordPlan && req.session) {
+        delete (req.session as any).oauthUserType;
+        return res.redirect(`${frontendUrl}/auth/callback?token=${user.token}&needLandlordPlan=1`);
+      }
       res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
     })(req, res, next);
   }
@@ -133,7 +278,10 @@ router.get(
 // VK ID One Tap — обмен access_token на JWT (callback flow)
 router.post(
   '/vk/token',
-  [body('access_token').notEmpty().withMessage('access_token is required')],
+  [
+    body('access_token').notEmpty().withMessage('access_token is required'),
+    body('userType').optional().isIn(['renter', 'landlord']),
+  ],
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
@@ -142,6 +290,7 @@ router.post(
       }
 
       const accessToken = req.body.access_token as string;
+      const userType = req.body.userType as string | undefined;
       const clientId = process.env.VK_CLIENT_ID;
 
       if (!clientId) {
@@ -181,7 +330,8 @@ router.post(
         userData.avatar || null
       );
 
-      res.json({ user, token });
+      const needLandlordPlan = userType === 'landlord';
+      res.json(needLandlordPlan ? { user, token, needLandlordPlan: true } : { user, token });
     } catch (error) {
       next(error);
     }

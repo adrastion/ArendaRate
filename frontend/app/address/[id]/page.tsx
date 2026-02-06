@@ -5,11 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { addressApi, moderationApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
 import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Address, Apartment, Review } from '@/types'
-import { RatingCriterion } from '@/types'
+import { RatingCriterion, UserRole } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
 import { AddReviewButton } from '@/components/AddReviewButton'
 import { AddReviewModal } from '@/components/AddReviewModal'
+import { ReviewActions } from '@/components/ReviewActions'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 import { pluralReviewsLocale, pluralApartmentsLocale } from '@/lib/pluralize'
@@ -73,6 +74,7 @@ export default function AddressPage() {
   }
 
   const isModerator = user && (user.role === 'MODERATOR' || user.role === 'ADMIN')
+  const isLandlord = user?.role === UserRole.LANDLORD
   const totalReviews = apartments.reduce((sum, apt) => sum + apt.reviews.length, 0)
 
   if (isLoading) {
@@ -132,7 +134,7 @@ export default function AddressPage() {
                 )}
               </p>
             </div>
-            {user && (
+            {user && user.role !== UserRole.LANDLORD && (
               <AddReviewButton
                 onClick={() => setShowAddReview(true)}
               />
@@ -144,7 +146,7 @@ export default function AddressPage() {
           {totalReviews === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
               <p className="text-gray-500 dark:text-gray-400 mb-4">{t('address.noReviewsYet')}</p>
-              {user && (
+              {user && user.role !== UserRole.LANDLORD && (
                 <AddReviewButton onClick={() => setShowAddReview(true)} />
               )}
             </div>
@@ -268,6 +270,15 @@ export default function AddressPage() {
                           </div>
                         )}
 
+                        {user && (
+                          <ReviewActions
+                            reviewId={review.id}
+                            apartmentId={apartment.id}
+                            canReply={!!(isLandlord && user?.landlordApartments?.some((la: { apartmentId: string }) => la.apartmentId === apartment.id))}
+                            landlordResponse={(review as any).landlordResponse}
+                            onReplySuccess={loadAddress}
+                          />
+                        )}
                         <div className="text-xs text-gray-400 dark:text-gray-500 mt-4">
                           {format(new Date(review.createdAt), 'dd.MM.yyyy')}
                         </div>

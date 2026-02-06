@@ -13,6 +13,12 @@ type ContentId = 'SIGN_IN' | 'SIGN_UP'
 interface VKOneTapProps {
   /** Сценарий: SIGN_IN для входа, SIGN_UP для регистрации */
   contentId?: ContentId
+  /** Надпись над виджетом (например, "Войти как") */
+  label?: string
+  /** Отключить виджет (например, до принятия правил) */
+  disabled?: boolean
+  /** При регистрации как арендодатель — после входа редирект на оформление подписки */
+  userType?: 'renter' | 'landlord'
   onError?: (error: unknown) => void
 }
 
@@ -52,10 +58,12 @@ declare global {
   }
 }
 
-export function VKOneTap({ contentId = 'SIGN_IN', onError }: VKOneTapProps) {
+export function VKOneTap({ contentId = 'SIGN_IN', label, disabled, userType, onError }: VKOneTapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onErrorRef = useRef(onError)
+  const userTypeRef = useRef(userType)
   onErrorRef.current = onError
+  userTypeRef.current = userType
   const [sdkReady, setSdkReady] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -115,8 +123,12 @@ export function VKOneTap({ contentId = 'SIGN_IN', onError }: VKOneTapProps) {
             if (!accessToken) {
               throw new Error('No access_token in response')
             }
-            await auth.vkTokenLogin(accessToken)
-            router.push('/')
+            const result = await auth.vkTokenLogin(accessToken, userTypeRef.current)
+            if (result.needLandlordPlan) {
+              router.push('/auth/complete-landlord')
+            } else {
+              router.push('/')
+            }
           } catch (err) {
             onErrorRef.current?.(err)
             setIsLoading(false)
@@ -134,11 +146,21 @@ export function VKOneTap({ contentId = 'SIGN_IN', onError }: VKOneTapProps) {
         strategy="lazyOnload"
         onLoad={() => setSdkReady(true)}
       />
-      <div ref={containerRef} className="min-h-[44px] flex items-center justify-center">
-        {isLoading && (
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {t('login.loggingIn')}
+      <div className="flex flex-col gap-2 relative">
+        {label && (
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {label}
           </span>
+        )}
+        <div ref={containerRef} className={`min-h-[44px] flex items-center justify-center ${disabled ? 'opacity-50' : ''}`}>
+          {isLoading && (
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {t('login.loggingIn')}
+            </span>
+          )}
+        </div>
+        {disabled && (
+          <div className="absolute inset-0 cursor-not-allowed z-10" aria-hidden="true" />
         )}
       </div>
     </>

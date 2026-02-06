@@ -13,8 +13,10 @@ datasource db {
 enum UserRole {
   GUEST
   RENTER
+  LANDLORD
   MODERATOR
   ADMIN
+  MARKETER
 }
 
 enum ReviewStatus {
@@ -45,15 +47,118 @@ model User {
   yandexId      String?   @unique
   vkId          String?   @unique
   
+  // Блокировка
+  isBlocked     Boolean   @default(false)
+  
+  // Для маркетолога: смена пароля при первом входе
+  passwordChangeRequired Boolean @default(false)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   reviews       Review[]
   moderationLogs ModerationLog[]
+  reviewResponses ReviewResponse[]
+  reviewVotes    ReviewVote[]
+  reviewReports  ReviewReport[]
+  
+  // Связи для арендодателя/арендатора
+  landlordApartments  LandlordApartment[]
+  landlordSubscription LandlordSubscription?
+  linkedAsRenter   User?   @relation("RenterLandlordLink", fields: [linkedLandlordId], references: [id])
+  linkedLandlordId String? @unique
+  linkedAsLandlord User?   @relation("RenterLandlordLink")
+  
+  // Маркетолог
+  marketerProfile   MarketerProfile?
   
   @@index([email])
   @@index([yandexId])
   @@index([vkId])
+}
+
+// Квартиры, которые сдаёт арендодатель (landlordId = User.id)
+model LandlordApartment {
+  id            String   @id @default(uuid())
+  landlordId    String
+  apartmentId   String
+  
+  createdAt     DateTime @default(now())
+  
+  landlord      User     @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  apartment     Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  
+  @@unique([landlordId, apartmentId])
+  @@index([landlordId])
+}
+
+// Текущая подписка арендодателя (остаток ответов)
+model LandlordSubscription {
+  id                String   @id @default(uuid())
+  landlordId        String   @unique
+  responsesRemaining Int    @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  landlord          User     @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  purchases         LandlordSubscriptionPurchase[]
+}
+
+// История покупок ответов
+model LandlordSubscriptionPurchase {
+  id                String   @id @default(uuid())
+  subscriptionId    String
+  planType          Int      // 1, 3, 5, 10 ответов
+  amount            Int      // Сумма в рублях
+  responsesGranted  Int
+  
+  promoCodeId       String?
+  marketerId        String?
+  
+  createdAt         DateTime @default(now())
+  
+  subscription      LandlordSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  promoCode         PromoCode?            @relation(fields: [promoCodeId], references: [id])
+  marketer          MarketerProfile?      @relation(fields: [marketerId], references: [id])
+  
+  @@index([subscriptionId])
+}
+
+// Промокод
+model PromoCode {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  marketerId    String?
+  discountType  String   // PERCENT | FIXED
+  discountValue Int      // Процент или сумма в рублях
+  usedCount     Int      @default(0)
+  maxUses       Int?     // null = без лимита
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  
+  usages        LandlordSubscriptionPurchase[]
+  marketer      MarketerProfile? @relation(fields: [marketerId], references: [id])
+  
+  @@index([code])
+  @@index([marketerId])
+}
+
+// Профиль маркетолога
+model MarketerProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  email         String
+  percentage    Float    // Процент от продаж
+  
+  createdAt     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promoCodes    PromoCode[]
+  purchases     LandlordSubscriptionPurchase[]
+  
+  @@index([email])
 }
 
 model Address {
@@ -84,6 +189,7 @@ model Apartment {
   
   address     Address   @relation(fields: [addressId], references: [id], onDelete: Cascade)
   reviews     Review[]
+  landlordApartments LandlordApartment[]
   
   @@unique([addressId, number])
   @@index([addressId])
@@ -115,11 +221,70 @@ model Review {
   ratings         Rating[]
   photos          Photo[]
   moderationLogs  ModerationLog[]
+  landlordResponse ReviewResponse?
+  votes            ReviewVote[]
+  reports          ReviewReport[]
   
+  @@unique([userId, apartmentId]) // Арендатор — один отзыв на одну квартиру
   @@index([apartmentId])
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+}
+
+model ReviewResponse {
+  id          String   @id @default(uuid())
+  reviewId    String   @unique
+  landlordId  String
+  text        String
+  
+  createdAt   DateTime @default(now())
+  
+  review      Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  landlord    User     @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  
+  @@index([reviewId])
+  @@index([landlordId])
+}
+
+model ReviewVote {
+  id        String   @id @default(uuid())
+  reviewId  String
+  userId    String
+  vote      Int      // 1 = LIKE, -1 = DISLIKE
+  
+  createdAt DateTime @default(now())
+  
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+}
+
+model ReviewReport {
+  id        String   @id @default(uuid())
+  reviewId  String
+  userId    String
+  reason    String?
+  
+  createdAt DateTime @default(now())
+  
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([reviewId])
+}
+
+model SystemSettings {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String   // JSON или строка
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([key])
 }
 
 model Rating {

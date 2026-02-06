@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { apartmentApi, moderationApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
+import { apartmentApi, moderationApi, userApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
 import { getScoreViewClasses } from '@/lib/ratingColors'
 import { Apartment, Review } from '@/types'
 import { RatingCriterion } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
+import { ReviewActions } from '@/components/ReviewActions'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 import { pluralReviewsLocale } from '@/lib/pluralize'
+import { UserRole } from '@/types'
 
 export default function ApartmentPage() {
   const { t, locale } = useTranslation()
@@ -75,6 +77,8 @@ export default function ApartmentPage() {
   }
 
   const isModerator = user && (user.role === 'MODERATOR' || user.role === 'ADMIN')
+  const isLandlord = user?.role === UserRole.LANDLORD
+  const isMyRental = isLandlord && user?.landlordApartments?.some((la: any) => la.apartmentId === params.id)
 
   if (isLoading) {
     return (
@@ -121,6 +125,28 @@ export default function ApartmentPage() {
               <span className="text-gray-400 dark:text-gray-500">{t('apartment.noReviewsShort')}</span>
             )}
           </p>
+          {isLandlord && (
+            <div className="mt-3">
+              {isMyRental ? (
+                <span className="text-sm text-green-600 dark:text-green-400">В ваших сдаваемых</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await userApi.addLandlordApartment(apartment.id)
+                      await checkAuth()
+                    } catch (e) {
+                      console.error(e)
+                    }
+                  }}
+                  className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  {t('landlord.addAddress')} (добавить в мои сдаваемые)
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -243,6 +269,13 @@ export default function ApartmentPage() {
                       </div>
                     )}
 
+                <ReviewActions
+                  reviewId={review.id}
+                  apartmentId={apartment.id}
+                  canReply={!!isMyRental}
+                  landlordResponse={(review as any).landlordResponse}
+                  onReplySuccess={loadApartment}
+                />
                 <div className="text-xs text-gray-400 dark:text-gray-500 mt-4">
                   {format(new Date(review.createdAt), 'dd.MM.yyyy')}
                 </div>

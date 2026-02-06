@@ -31,11 +31,14 @@ export const authenticate: RequestHandler = async (
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, role: true },
+      select: { id: true, email: true, role: true, isBlocked: true },
     });
 
     if (!user) {
       throw createError('User not found', 401);
+    }
+    if (user.isBlocked) {
+      throw createError('Account is blocked', 403);
     }
 
     authReq.user = user;

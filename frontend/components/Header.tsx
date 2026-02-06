@@ -74,6 +74,12 @@ export function Header() {
             >
               {t('header.about')}
             </Link>
+            <Link
+              href="/contacts"
+              className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
+            >
+              {t('header.contacts')}
+            </Link>
             <a
               href="https://yoomoney.ru/to/4100119446457843"
               target="_blank"
@@ -115,6 +121,22 @@ export function Header() {
                     className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     {t('header.moderation')}
+                  </Link>
+                ) : null}
+                {user.role === 'ADMIN' ? (
+                  <Link
+                    href="/admin"
+                    className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Админ
+                  </Link>
+                ) : null}
+                {user.role === 'MARKETER' ? (
+                  <Link
+                    href="/marketer"
+                    className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Маркетолог
                   </Link>
                 ) : null}
                 <button
@@ -203,6 +225,14 @@ export function Header() {
                   >
                     {t('header.about')}
                   </Link>
+                  <Link
+                    href="/contacts"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    role="menuitem"
+                  >
+                    {t('header.contacts')}
+                  </Link>
 
                   {/* Сказать спасибо */}
                   <a
@@ -258,6 +288,26 @@ export function Header() {
                           role="menuitem"
                         >
                           {t('header.moderation')}
+                        </Link>
+                      ) : null}
+                      {user.role === 'ADMIN' ? (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          role="menuitem"
+                        >
+                          Админ
+                        </Link>
+                      ) : null}
+                      {user.role === 'MARKETER' ? (
+                        <Link
+                          href="/marketer"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          role="menuitem"
+                        >
+                          Маркетолог
                         </Link>
                       ) : null}
                       <button

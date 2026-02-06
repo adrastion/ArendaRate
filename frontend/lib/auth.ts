@@ -36,6 +36,8 @@ export const auth = {
     password: string
     name: string
     dateOfBirth: string
+    userType?: 'renter' | 'landlord'
+    landlordPlan?: { planType: number; amount: number; promoCode?: string }
   }) => {
     const response = await authApi.register(data)
     auth.setToken(response.token)
@@ -58,11 +60,14 @@ export const auth = {
     }
   },
 
-  /** VK ID One Tap: вход по access_token от VK */
-  vkTokenLogin: async (accessToken: string) => {
-    const response = await authApi.vkTokenLogin(accessToken)
+  /** VK ID One Tap: вход по access_token от VK. При userType=landlord возвращает needLandlordPlan для редиректа на оформление подписки. */
+  vkTokenLogin: async (
+    accessToken: string,
+    userType?: 'renter' | 'landlord'
+  ): Promise<{ user: User; needLandlordPlan?: boolean }> => {
+    const response = await authApi.vkTokenLogin(accessToken, userType)
     auth.setToken(response.token)
-    return response.user
+    return { user: response.user, needLandlordPlan: response.needLandlordPlan }
   },
 }
 

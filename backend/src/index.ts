@@ -15,6 +15,8 @@ import moderationRoutes from './routes/moderation';
 import telegramWebhookRoutes from './routes/telegramWebhook';
 import uploadRoutes from './routes/upload';
 import userRoutes from './routes/user';
+import adminRoutes from './routes/admin';
+import marketerRoutes from './routes/marketer';
 
 dotenv.config();
 
@@ -54,6 +56,8 @@ app.use('/api/moderation', moderationRoutes);
 app.use('/api/telegram-webhook', telegramWebhookRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/marketer', marketerRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

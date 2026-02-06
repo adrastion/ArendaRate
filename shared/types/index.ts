@@ -3,8 +3,10 @@
 export enum UserRole {
   GUEST = 'GUEST',
   RENTER = 'RENTER',
+  LANDLORD = 'LANDLORD',
   MODERATOR = 'MODERATOR',
   ADMIN = 'ADMIN',
+  MARKETER = 'MARKETER',
 }
 
 export enum ReviewStatus {
