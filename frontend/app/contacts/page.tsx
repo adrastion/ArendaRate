@@ -46,7 +46,7 @@ export default function ContactsPage() {
               </p>
               <ul className="list-none space-y-2 pl-0">
                 <li><strong>ФИО:</strong> Сапронов Павел Анатольевич</li>
-                <li><strong>ИНН:</strong> 7750005725</li>
+                <li><strong>ИНН:</strong> 463234953250</li>
               </ul>
             </section>
 
