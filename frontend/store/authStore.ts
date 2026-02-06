@@ -13,6 +13,8 @@ interface AuthState {
     password: string
     name: string
     dateOfBirth: string
+    userType?: 'renter' | 'landlord'
+    landlordPlan?: { planType: number; amount: number; promoCode?: string }
   }) => Promise<void>
   logout: () => void
   checkAuth: () => Promise<void>
