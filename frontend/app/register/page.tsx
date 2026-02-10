@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 import { VKOneTap } from '@/components/VKOneTap'
 import { LandlordSubscriptionModal } from '@/components/LandlordSubscriptionModal'
+import { userApi } from '@/lib/api'
 
 type UserType = 'renter' | 'landlord'
 
@@ -84,7 +85,7 @@ export default function RegisterPage() {
           landlordPlan: { planType: landlordPlan.planType, amount: landlordPlan.amount },
         }),
       })
-      router.push('/')
+      router.push('/map')
     } catch (err: any) {
       setError(err.response?.data?.message || t('register.error'))
     } finally {
@@ -111,7 +112,17 @@ export default function RegisterPage() {
         userType: 'landlord',
         landlordPlan: { planType, amount, promoCode },
       })
-      router.push('/')
+      try {
+        const { confirmationUrl } = await userApi.landlordCreatePayment({ planType, amount, promoCode: promoCode || undefined })
+        window.location.href = confirmationUrl
+        return
+      } catch (payErr: any) {
+        if (payErr?.response?.status === 503) {
+          router.push('/map')
+          return
+        }
+        setError(payErr?.response?.data?.message || 'Ошибка создания платежа')
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || t('register.error'))
     } finally {

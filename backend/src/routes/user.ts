@@ -5,10 +5,10 @@ import { authenticate } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
 import { applyPromoCode, incrementPromoUsage } from '../services/promoService';
+import { getSubscriptionPlans, getPlanPrice } from '../lib/subscriptionPlans';
+import { createYookassaPayment } from '../services/yookassaService';
 
 const router = express.Router();
-
-const SUBSCRIPTION_PLANS: Record<number, number> = { 1: 100, 3: 340, 5: 450, 10: 900 };
 
 // --- Арендодатель: добавить квартиру (адрес сдаваемого жилья) ---
 router.post(
@@ -122,37 +122,30 @@ router.get(
   }
 );
 
-// --- Арендодатель: докупить ответы на отзывы ---
+// --- Арендодатель: создать платёж ЮKassa (редирект на оплату) ---
 router.post(
-  '/me/landlord-top-up',
+  '/me/landlord-create-payment',
   authenticate,
   [
-    body('planType').isIn([1, 3, 5, 10]).withMessage('planType must be 1, 3, 5 or 10'),
-    body('amount').isInt({ min: 0 }).withMessage('amount must be a non-negative number'),
+    body('planType').isInt({ min: 1 }),
+    body('amount').isInt({ min: 0 }),
     body('promoCode').optional().isString(),
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+      if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
       const userId = req.user!.id;
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true },
-      });
-      if (user?.role !== 'LANDLORD') {
-        throw createError('Only landlords can top up responses', 403);
-      }
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+      if (user?.role !== 'LANDLORD') throw createError('Only landlords can create payment', 403);
+
+      const plans = await getSubscriptionPlans();
       const planType = req.body.planType as number;
       let amount = req.body.amount as number;
       const promoCode = (req.body.promoCode as string)?.trim() || undefined;
 
-      const expectedAmount = SUBSCRIPTION_PLANS[planType];
-      if (expectedAmount == null || amount !== expectedAmount) {
-        throw createError('Invalid plan or amount for this plan', 400);
-      }
+      const expectedPrice = getPlanPrice(plans, planType);
+      if (expectedPrice == null || amount !== expectedPrice) throw createError('Invalid plan or amount', 400);
 
       let promoCodeId: string | null = null;
       let marketerId: string | null = null;
@@ -165,9 +158,91 @@ router.post(
         }
       }
 
-      let subscription = await prisma.landlordSubscription.findUnique({
-        where: { landlordId: userId },
+      let subscription = await prisma.landlordSubscription.findUnique({ where: { landlordId: userId } });
+      if (!subscription) {
+        subscription = await prisma.landlordSubscription.create({
+          data: { landlordId: userId, responsesRemaining: 0 },
+        });
+      }
+
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const returnUrl = `${frontendUrl.replace(/\/$/, '')}/profile?payment=done`;
+
+      const payment = await createYookassaPayment({
+        amountRub: amount,
+        description: `ArendaRate: ${planType} ответов на отзывы`,
+        returnUrl,
+        metadata: {
+          landlordId: userId,
+          subscriptionId: subscription.id,
+          planType: String(planType),
+          amount: String(amount),
+          ...(promoCodeId && { promoCodeId }),
+          ...(marketerId && { marketerId }),
+        },
       });
+
+      if (!payment) {
+        throw createError('Payment provider not configured. Set YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY.', 503);
+      }
+
+      await prisma.pendingYookassaPayment.create({
+        data: {
+          yookassaPaymentId: payment.id,
+          landlordId: userId,
+          planType,
+          amount,
+          subscriptionId: subscription.id,
+          promoCodeId: promoCodeId ?? undefined,
+          marketerId: marketerId ?? undefined,
+          status: 'PENDING',
+        },
+      });
+
+      res.json({ confirmationUrl: payment.confirmationUrl, paymentId: payment.id });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// --- Арендодатель: докупить ответы (мгновенно, если ЮKassa не настроена — для тестов) ---
+router.post(
+  '/me/landlord-top-up',
+  authenticate,
+  [
+    body('planType').isInt({ min: 1 }),
+    body('amount').isInt({ min: 0 }),
+    body('promoCode').optional().isString(),
+  ],
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+      const userId = req.user!.id;
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+      if (user?.role !== 'LANDLORD') throw createError('Only landlords can top up responses', 403);
+
+      const plans = await getSubscriptionPlans();
+      const planType = req.body.planType as number;
+      let amount = req.body.amount as number;
+      const promoCode = (req.body.promoCode as string)?.trim() || undefined;
+
+      const expectedPrice = getPlanPrice(plans, planType);
+      if (expectedPrice == null || amount !== expectedPrice) throw createError('Invalid plan or amount for this plan', 400);
+
+      let promoCodeId: string | null = null;
+      let marketerId: string | null = null;
+      if (promoCode) {
+        const applied = await applyPromoCode(promoCode, amount);
+        if (applied) {
+          amount = applied.finalAmount;
+          promoCodeId = applied.promoCodeId;
+          marketerId = applied.marketerId;
+        }
+      }
+
+      let subscription = await prisma.landlordSubscription.findUnique({ where: { landlordId: userId } });
       if (!subscription) {
         subscription = await prisma.landlordSubscription.create({
           data: { landlordId: userId, responsesRemaining: 0 },

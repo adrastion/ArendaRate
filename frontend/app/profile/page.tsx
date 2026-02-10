@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { reviewApi, userApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
 import { Review } from '@/types'
 import { format } from 'date-fns'
@@ -16,6 +16,7 @@ import { UserRole } from '@/types'
 export default function ProfilePage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, checkAuth, logout, setUser, switchToLinkedAccount, linkLandlordAccount, createLinkedRenterAccount } = useAuthStore()
   const [reviews, setReviews] = useState<Review[]>([])
   const [landlordAnswered, setLandlordAnswered] = useState<any[]>([])
@@ -57,9 +58,13 @@ export default function ProfilePage() {
       if (currentUser.role === UserRole.LANDLORD) {
         loadLandlordReviews()
       }
+      if (searchParams.get('payment') === 'done') {
+        setProfileSuccess(t('landlord.topUpSuccess'))
+        window.history.replaceState({}, '', '/profile')
+      }
     })
     return () => { cancelled = true }
-  }, [checkAuth])
+  }, [checkAuth, searchParams])
 
   const loadLandlordReviews = async () => {
     try {
@@ -638,9 +643,19 @@ export default function ProfilePage() {
             setSwitchLoading(true)
             try {
               await linkLandlordAccount({ password, landlordPlan: { planType, amount, promoCode } })
-              setShowSwitchModal(false)
-              setProfileSuccess('Аккаунт арендодателя создан и привязан')
-              loadLandlordReviews()
+              try {
+                const { confirmationUrl } = await userApi.landlordCreatePayment({ planType, amount, promoCode: promoCode || undefined })
+                window.location.href = confirmationUrl
+                return
+              } catch (payErr: any) {
+                if (payErr?.response?.status === 503) {
+                  setShowSwitchModal(false)
+                  setProfileSuccess('Аккаунт арендодателя создан. Оплата временно недоступна.')
+                  loadLandlordReviews()
+                  return
+                }
+                setProfileError(payErr?.response?.data?.message || 'Ошибка создания платежа')
+              }
             } catch (e: any) {
               setProfileError(e?.response?.data?.message || 'Ошибка создания аккаунта')
             } finally {
@@ -661,13 +676,23 @@ export default function ProfilePage() {
             setTopUpLoading(true)
             setProfileError('')
             try {
-              await userApi.landlordTopUp({ planType, amount, promoCode: promoCode || undefined })
-              await checkAuth()
-              setShowTopUpModal(false)
-              setProfileSuccess(t('landlord.topUpSuccess'))
-              loadLandlordReviews()
+              const { confirmationUrl } = await userApi.landlordCreatePayment({ planType, amount, promoCode: promoCode || undefined })
+              window.location.href = confirmationUrl
+              return
             } catch (e: any) {
-              setProfileError(e?.response?.data?.message || 'Ошибка докупки')
+              if (e?.response?.status === 503) {
+                try {
+                  await userApi.landlordTopUp({ planType, amount, promoCode: promoCode || undefined })
+                  await checkAuth()
+                  setShowTopUpModal(false)
+                  setProfileSuccess(t('landlord.topUpSuccess'))
+                  loadLandlordReviews()
+                } catch (topUpErr: any) {
+                  setProfileError(topUpErr?.response?.data?.message || 'Ошибка докупки')
+                }
+              } else {
+                setProfileError(e?.response?.data?.message || 'Ошибка создания платежа')
+              }
             } finally {
               setTopUpLoading(false)
             }

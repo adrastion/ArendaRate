@@ -33,7 +33,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-      router.push('/')
+      router.push('/map')
     } catch (err: any) {
       setError(err.response?.data?.message || t('login.error'))
     } finally {

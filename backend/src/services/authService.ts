@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { createError } from '../middleware/errorHandler';
 import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
-import { applyPromoCode, incrementPromoUsage } from './promoService';
 
 export interface RegisterData {
   email: string;
@@ -73,37 +72,14 @@ export const authService = {
       },
     });
 
-    // Для арендодателя: создаём подписку и покупку
+    // Для арендодателя: создаём подписку с 0 ответов — оплата через ЮKassa (фронт вызовет create-payment и редирект)
     if (isLandlord && data.landlordPlan) {
-      const { planType, amount, promoCode } = data.landlordPlan;
-      let finalAmount = amount;
-      let promoCodeId: string | null = null;
-      let marketerId: string | null = null;
-      if (promoCode) {
-        const applied = await applyPromoCode(promoCode, amount);
-        if (applied) {
-          finalAmount = applied.finalAmount;
-          promoCodeId = applied.promoCodeId;
-          marketerId = applied.marketerId;
-        }
-      }
-      const subscription = await prisma.landlordSubscription.create({
+      await prisma.landlordSubscription.create({
         data: {
           landlordId: user.id,
-          responsesRemaining: planType,
+          responsesRemaining: 0,
         },
       });
-      await prisma.landlordSubscriptionPurchase.create({
-        data: {
-          subscriptionId: subscription.id,
-          planType,
-          amount: finalAmount,
-          responsesGranted: planType,
-          promoCodeId: promoCodeId ?? undefined,
-          marketerId: marketerId ?? undefined,
-        },
-      });
-      if (promoCodeId) await incrementPromoUsage(promoCodeId);
     }
 
     // Генерация JWT токена
@@ -261,34 +237,12 @@ export const authService = {
       select: { id: true, email: true, name: true, avatar: true, role: true, createdAt: true },
     });
 
-    let finalAmount = data.landlordPlan.amount;
-    let promoCodeId: string | null = null;
-    let marketerId: string | null = null;
-    if (data.landlordPlan.promoCode) {
-      const applied = await applyPromoCode(data.landlordPlan.promoCode, data.landlordPlan.amount);
-      if (applied) {
-        finalAmount = applied.finalAmount;
-        promoCodeId = applied.promoCodeId;
-        marketerId = applied.marketerId;
-      }
-    }
-    const subscription = await prisma.landlordSubscription.create({
+    await prisma.landlordSubscription.create({
       data: {
         landlordId: landlordUser.id,
-        responsesRemaining: data.landlordPlan.planType,
+        responsesRemaining: 0,
       },
     });
-    await prisma.landlordSubscriptionPurchase.create({
-      data: {
-        subscriptionId: subscription.id,
-        planType: data.landlordPlan.planType,
-        amount: finalAmount,
-        responsesGranted: data.landlordPlan.planType,
-        promoCodeId: promoCodeId ?? undefined,
-        marketerId: marketerId ?? undefined,
-      },
-    });
-    if (promoCodeId) await incrementPromoUsage(promoCodeId);
 
     await prisma.user.update({
       where: { id: renterId },

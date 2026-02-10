@@ -17,6 +17,7 @@ import uploadRoutes from './routes/upload';
 import userRoutes from './routes/user';
 import adminRoutes from './routes/admin';
 import marketerRoutes from './routes/marketer';
+import paymentsRoutes from './routes/payments';
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/marketer', marketerRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -126,6 +126,46 @@ export default function AboutPage() {
               <p className="font-medium text-gray-800 dark:text-gray-200">{t('about.regards')}</p>
             </section>
 
+            <section id="team" className="mb-8 scroll-mt-24">
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('about.creatorsTitle')}</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <a
+                  href="https://t.me/The_Sapron"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/40 p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{t('about.creatorIdeologist')}</div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">t.me/The_Sapron</div>
+                    <div className="mt-2 text-sm text-sky-700 dark:text-sky-300 group-hover:underline">{t('about.openChat')}</div>
+                  </div>
+                </a>
+                <a
+                  href="https://t.me/besmsk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/40 p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                >
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{t('about.creatorDeveloper')}</div>
+                    <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">t.me/besmsk</div>
+                    <div className="mt-2 text-sm text-sky-700 dark:text-sky-300 group-hover:underline">{t('about.openChat')}</div>
+                  </div>
+                </a>
+              </div>
+            </section>
+
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{t('about.contactSupport')}</h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">

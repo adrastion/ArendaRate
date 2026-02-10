@@ -75,6 +75,17 @@ npx prisma migrate dev --name init
 
 Это создаст первую миграцию на основе `schema.prisma` и применит её.
 
+## Ошибка: «The column `User.isBlocked` does not exist»
+
+Схема Prisma обновлена (добавлены поля вроде `isBlocked`, `passwordChangeRequired` и др.), но в базе этих колонок ещё нет. Привести БД в соответствие со схемой без миграций:
+
+```bash
+cd backend
+npx prisma db push
+```
+
+После этого перезапустите backend. Для продакшена в дальнейшем лучше завести миграции и применять их через `prisma migrate deploy`.
+
 ## Если возникают ошибки
 
 ### Ошибка: "Migration failed"

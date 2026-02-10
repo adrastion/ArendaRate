@@ -1,14 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from '@/lib/useTranslation'
-
-const SUBSCRIPTION_PLANS = [
-  { responses: 1, price: 100 },
-  { responses: 3, price: 340 },
-  { responses: 5, price: 450 },
-  { responses: 10, price: 900 },
-]
+import { subscriptionPlansApi } from '@/lib/api'
 
 interface LandlordSubscriptionModalProps {
   isOpen: boolean
@@ -37,6 +31,19 @@ export function LandlordSubscriptionModal({
   const { t } = useTranslation()
   const [linkPassword, setLinkPassword] = useState('')
   const [promoCode, setPromoCode] = useState('')
+  const [plans, setPlans] = useState<{ responses: number; price: number }[]>([])
+  const [plansLoading, setPlansLoading] = useState(true)
+
+  useEffect(() => {
+    if (!isOpen || step !== 'plan') return
+    subscriptionPlansApi.getPlans().then((r) => {
+      setPlans(r.plans)
+    }).catch(() => {
+      setPlans([{ responses: 1, price: 100 }, { responses: 3, price: 340 }, { responses: 5, price: 450 }, { responses: 10, price: 900 }])
+    }).finally(() => {
+      setPlansLoading(false)
+    })
+  }, [isOpen, step])
 
   if (!isOpen) return null
 
@@ -116,7 +123,10 @@ export function LandlordSubscriptionModal({
               </div>
             )}
             <div className="space-y-3 mb-3">
-              {SUBSCRIPTION_PLANS.map((plan) => (
+              {plansLoading ? (
+                <p className="text-gray-500 dark:text-gray-400">Загрузка тарифов…</p>
+              ) : (
+              plans.map((plan) => (
                 <button
                   key={plan.responses}
                   type="button"
@@ -129,7 +139,7 @@ export function LandlordSubscriptionModal({
                   </span>
                   <span className="text-primary-600 dark:text-primary-400">→</span>
                 </button>
-              ))}
+              )))}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
               После оплаты пакет ответов зачисляется на ваш счёт в личном кабинете в течение нескольких минут.

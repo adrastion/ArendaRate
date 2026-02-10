@@ -244,12 +244,17 @@ router.get('/stats/marketers', adminAuth, async (_req: Request, res: Response, n
   }
 });
 
-// Настройки: получить
+// Настройки: получить (subscription_plans подставляется из БД или дефолт)
 router.get('/settings', adminAuth, async (_req: Request, res: Response, next: NextFunction) => {
   try {
+    const { getSubscriptionPlans } = await import('../lib/subscriptionPlans');
     const settings = await prisma.systemSettings.findMany();
     const map: Record<string, string> = {};
     settings.forEach((s) => { map[s.key] = s.value; });
+    if (!map.subscription_plans) {
+      const plans = await getSubscriptionPlans();
+      map.subscription_plans = JSON.stringify(plans);
+    }
     res.json({ settings: map });
   } catch (e) {
     next(e);

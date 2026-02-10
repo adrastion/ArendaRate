@@ -179,13 +179,31 @@ export const userApi = {
     return response.data
   },
 
-  /** Докупка ответов арендодателем (planType: 1|3|5|10, amount — цена по тарифу, promoCode — опционально). */
+  /** Создать платёж ЮKassa — возвращает URL для редиректа на оплату. */
+  landlordCreatePayment: async (data: {
+    planType: number
+    amount: number
+    promoCode?: string
+  }): Promise<{ confirmationUrl: string; paymentId: string }> => {
+    const response = await api.post('/user/me/landlord-create-payment', data)
+    return response.data
+  },
+
+  /** Докупка ответов (мгновенно, без ЮKassa — для тестов или если платёж не настроен). */
   landlordTopUp: async (data: {
     planType: number
     amount: number
     promoCode?: string
   }): Promise<{ responsesRemaining: number }> => {
     const response = await api.post('/user/me/landlord-top-up', data)
+    return response.data
+  },
+}
+
+/** Публичный API тарифов подписки (для модалки). */
+export const subscriptionPlansApi = {
+  getPlans: async (): Promise<{ plans: { responses: number; price: number }[] }> => {
+    const response = await api.get('/payments/subscription-plans')
     return response.data
   },
 }

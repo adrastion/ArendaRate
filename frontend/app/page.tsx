@@ -1,13 +1,33 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Header } from '@/components/Header'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 
 export default function LandingPage() {
-  const { user } = useAuthStore()
+  const router = useRouter()
+  const { user, checkAuth } = useAuthStore()
   const { t } = useTranslation()
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    checkAuth().then(() => {
+      const u = useAuthStore.getState().user
+      if (u) router.replace('/map')
+      else setCheckingAuth(false)
+    })
+  }, [checkAuth, router])
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -167,6 +187,7 @@ export default function LandingPage() {
           <nav className="flex items-center gap-6 text-sm flex-wrap justify-center">
             <Link href="/map" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.map')}</Link>
             <Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.about')}</Link>
+            <Link href="/about#team" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.creators')}</Link>
             <Link href="/reviews" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.reviews')}</Link>
             <Link href="/user-agreement" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.userAgreement')}</Link>
             <Link href="/contacts" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.contacts')}</Link>

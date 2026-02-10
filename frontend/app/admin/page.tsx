@@ -39,6 +39,8 @@ export default function AdminPage() {
   const [createdMarketerEmail, setCreatedMarketerEmail] = useState('')
   const [createdMarketerPassword, setCreatedMarketerPassword] = useState('')
   const [subResponses, setSubResponses] = useState<Record<string, string>>({})
+  const [subscriptionPlans, setSubscriptionPlans] = useState<{ responses: number; price: number }[]>([])
+  const [savingPlans, setSavingPlans] = useState(false)
 
   useEffect(() => {
     checkAuth().then(() => {
@@ -79,6 +81,12 @@ export default function AdminPage() {
       } else if (tab === 'settings') {
         const r = await adminApi.getSettings()
         setSettings(r.settings)
+        const raw = r.settings?.subscription_plans
+        try {
+          setSubscriptionPlans(raw ? JSON.parse(raw) : [{ responses: 1, price: 100 }, { responses: 3, price: 340 }, { responses: 5, price: 450 }, { responses: 10, price: 900 }])
+        } catch {
+          setSubscriptionPlans([{ responses: 1, price: 100 }, { responses: 3, price: 340 }, { responses: 5, price: 450 }, { responses: 10, price: 900 }])
+        }
       }
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Ошибка загрузки')
@@ -168,6 +176,25 @@ export default function AdminPage() {
       setSettings((s) => ({ ...s, promo_code_field_enabled: enabled ? 'true' : 'false' }))
     } catch (e: any) {
       setError(e?.response?.data?.message || 'Ошибка')
+    }
+  }
+
+  const handleSaveSubscriptionPlans = async () => {
+    const valid = subscriptionPlans.filter((p) => Number.isFinite(p.responses) && p.responses > 0 && Number.isFinite(p.price) && p.price >= 0)
+    if (valid.length === 0) {
+      setError('Добавьте хотя бы один тариф (ответы > 0, цена ≥ 0)')
+      return
+    }
+    setSavingPlans(true)
+    setError('')
+    try {
+      await adminApi.setSetting('subscription_plans', JSON.stringify(valid))
+      setSubscriptionPlans(valid)
+      setSuccess('Тарифы сохранены')
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Ошибка сохранения')
+    } finally {
+      setSavingPlans(false)
     }
   }
 
@@ -392,10 +419,10 @@ export default function AdminPage() {
         )}
 
         {!loading && tab === 'settings' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Настройки</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Настройки</h2>
             <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-              <span>Поле промокода при оформлении подписки</span>
+              <span className="text-gray-700 dark:text-gray-300">Поле промокода при оформлении подписки</span>
               <button
                 type="button"
                 onClick={() => handlePromoFieldToggle(settings.promo_code_field_enabled === 'false')}
@@ -403,6 +430,76 @@ export default function AdminPage() {
               >
                 {settings.promo_code_field_enabled === 'false' ? 'Включить' : 'Выключить'}
               </button>
+            </div>
+            <div>
+              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">Тарифы подписки (ответы / цена ₽)</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-600">
+                      <th className="text-left py-2 text-gray-600 dark:text-gray-400">Ответов</th>
+                      <th className="text-left py-2 text-gray-600 dark:text-gray-400">Цена (₽)</th>
+                      <th className="w-10" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subscriptionPlans.map((p, i) => (
+                      <tr key={i} className="border-b border-gray-100 dark:border-gray-700">
+                        <td className="py-1">
+                          <input
+                            type="number"
+                            min={1}
+                            value={p.responses}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value, 10)
+                              setSubscriptionPlans((prev) => prev.map((pl, j) => (j === i ? { ...pl, responses: Number.isNaN(v) ? 0 : v } : pl)))
+                            }}
+                            className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          />
+                        </td>
+                        <td className="py-1">
+                          <input
+                            type="number"
+                            min={0}
+                            value={p.price}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value, 10)
+                              setSubscriptionPlans((prev) => prev.map((pl, j) => (j === i ? { ...pl, price: Number.isNaN(v) ? 0 : v } : pl)))
+                            }}
+                            className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          />
+                        </td>
+                        <td className="py-1">
+                          <button
+                            type="button"
+                            onClick={() => setSubscriptionPlans((prev) => prev.filter((_, j) => j !== i))}
+                            className="text-red-600 hover:underline"
+                          >
+                            Удалить
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionPlans((prev) => [...prev, { responses: 1, price: 0 }])}
+                  className="px-3 py-1.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 text-sm"
+                >
+                  Добавить тариф
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSubscriptionPlans}
+                  disabled={savingPlans}
+                  className="px-3 py-1.5 rounded bg-green-600 text-white text-sm disabled:opacity-50"
+                >
+                  {savingPlans ? 'Сохранение…' : 'Сохранить тарифы'}
+                </button>
+              </div>
             </div>
           </div>
         )}

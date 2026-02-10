@@ -72,6 +72,8 @@ model User {
   // Маркетолог
   marketerProfile   MarketerProfile?
   
+  pendingYookassaPayments PendingYookassaPayment[]
+  
   @@index([email])
   @@index([yandexId])
   @@index([vkId])
@@ -123,6 +125,26 @@ model LandlordSubscriptionPurchase {
   marketer          MarketerProfile?      @relation(fields: [marketerId], references: [id])
   
   @@index([subscriptionId])
+}
+
+// Ожидающий платёж ЮKassa (для идемпотентной обработки webhook)
+model PendingYookassaPayment {
+  id                String   @id @default(uuid())
+  yookassaPaymentId String   @unique  // id из ЮKassa
+  landlordId        String
+  planType          Int
+  amount            Int      // итоговая сумма после скидки
+  subscriptionId    String?  // для докупки; при регистрации подписка уже есть
+  promoCodeId       String?
+  marketerId        String?
+  status            String   @default("PENDING")  // PENDING | COMPLETED | FAILED
+  
+  createdAt         DateTime @default(now())
+  
+  landlord          User     @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  
+  @@index([yookassaPaymentId])
+  @@index([landlordId])
 }
 
 // Промокод
