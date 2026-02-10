@@ -17,6 +17,12 @@ export interface CreatePaymentResult {
   status: string
 }
 
+interface YooKassaPaymentResponse {
+  id: string
+  status?: string
+  confirmation?: { confirmation_url?: string }
+}
+
 export async function createYookassaPayment(params: CreatePaymentParams): Promise<CreatePaymentResult | null> {
   const shopId = process.env.YOOKASSA_SHOP_ID
   const secretKey = process.env.YOOKASSA_SECRET_KEY
@@ -55,7 +61,7 @@ export async function createYookassaPayment(params: CreatePaymentParams): Promis
     throw new Error(`YooKassa error: ${res.status}`)
   }
 
-  const data = await res.json()
+  const data = (await res.json()) as YooKassaPaymentResponse
   const confirmationUrl = data.confirmation?.confirmation_url
   if (!data.id || !confirmationUrl) {
     console.error('YooKassa invalid response:', data)
