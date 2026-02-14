@@ -402,6 +402,11 @@ export const marketerApi = {
       id: string
       email: string
       percentage: number
+      fullName: string | null
+      inn: string | null
+      passport: string | null
+      phone: string | null
+      contractAcceptedAt: string | null
       promoCodes: Array<{
         id: string
         code: string
@@ -417,6 +422,14 @@ export const marketerApi = {
     }
   }> => {
     const response = await api.get('/marketer/me')
+    return response.data
+  },
+  acceptContract: async (data: { fullName: string; inn?: string; passport: string; phone: string }) => {
+    const response = await api.patch('/marketer/me/contract', data)
+    return response.data
+  },
+  getContractText: async (): Promise<{ contractText: string }> => {
+    const response = await api.get('/marketer/me/contract-text')
     return response.data
   },
 }
@@ -445,6 +458,10 @@ export const adminApi = {
   },
   getMarketers: async () => {
     const response = await api.get('/admin/marketers')
+    return response.data
+  },
+  getMarketerContract: async (marketerId: string): Promise<{ contractText: string }> => {
+    const response = await api.get(`/admin/marketers/${marketerId}/contract`)
     return response.data
   },
   createMarketer: async (data: { email: string; percentage: number }) => {

@@ -41,6 +41,10 @@ export default function AdminPage() {
   const [subResponses, setSubResponses] = useState<Record<string, string>>({})
   const [subscriptionPlans, setSubscriptionPlans] = useState<{ responses: number; price: number }[]>([])
   const [savingPlans, setSavingPlans] = useState(false)
+  const [showMarketerContractModal, setShowMarketerContractModal] = useState(false)
+  const [marketerContractText, setMarketerContractText] = useState('')
+  const [marketerContractLoading, setMarketerContractLoading] = useState(false)
+  const [marketerContractEmail, setMarketerContractEmail] = useState('')
 
   useEffect(() => {
     checkAuth().then(() => {
@@ -361,10 +365,40 @@ export default function AdminPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Список маркетологов</h2>
               <ul className="space-y-2">
-                {marketers.map((m) => (
-                  <li key={m.id} className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                {marketers.map((m: any) => (
+                  <li key={m.id} className="flex flex-wrap justify-between items-center gap-2 py-2 border-b border-gray-100 dark:border-gray-700">
                     <span>{m.email} — {m.percentage}%</span>
-                    <span className="text-gray-500 text-sm">Промокодов: {m._count?.promoCodes ?? 0}</span>
+                    <span className="text-gray-500 text-sm">
+                      Промокодов: {m._count?.promoCodes ?? 0}
+                      {' · '}
+                      {m.contractAcceptedAt ? (
+                        <>Договор подписан {format(new Date(m.contractAcceptedAt), 'dd.MM.yyyy')}</>
+                      ) : (
+                        <span className="text-amber-600 dark:text-amber-400">Договор не подписан</span>
+                      )}
+                    </span>
+                    {m.contractAcceptedAt && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setMarketerContractEmail(m.email)
+                          setShowMarketerContractModal(true)
+                          setMarketerContractLoading(true)
+                          setMarketerContractText('')
+                          try {
+                            const r = await adminApi.getMarketerContract(m.id)
+                            setMarketerContractText(r.contractText)
+                          } catch {
+                            setMarketerContractText('Не удалось загрузить договор.')
+                          } finally {
+                            setMarketerContractLoading(false)
+                          }
+                        }}
+                        className="text-sm px-2 py-1 rounded bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500"
+                      >
+                        Просмотр договора
+                      </button>
+                    )}
                   </li>
                 ))}
                 {marketers.length === 0 && <li className="text-gray-500">Нет маркетологов</li>}
@@ -539,6 +573,24 @@ export default function AdminPage() {
               >
                 Закрыть
               </button>
+            </div>
+          </div>
+        )}
+
+        {showMarketerContractModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowMarketerContractModal(false)}>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Договор — {marketerContractEmail}</h3>
+                <button type="button" onClick={() => setShowMarketerContractModal(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Закрыть</button>
+              </div>
+              <div className="p-4 overflow-auto flex-1">
+                {marketerContractLoading ? (
+                  <p className="text-gray-500 dark:text-gray-400">Загрузка…</p>
+                ) : (
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200">{marketerContractText}</pre>
+                )}
+              </div>
             </div>
           </div>
         )}

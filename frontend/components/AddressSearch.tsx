@@ -10,13 +10,17 @@ interface AddressSearchProps {
   onSelect: (address: AddressSearchResult) => void
   /** Геолокация пользователя — адреса ближе к ней показываются первыми в поиске */
   userLocation?: { lat: number; lng: number } | null
+  /** Плейсхолдер поля поиска (по умолчанию — из переводов) */
+  placeholder?: string
+  /** Дополнительные классы для input (например, для выравнивания высоты с кнопкой) */
+  inputClassName?: string
 }
 
 // Кэш результатов поиска на клиенте
 const searchCache = new Map<string, AddressSearchResult[]>()
 const MAX_CACHE_SIZE = 50
 
-export function AddressSearch({ onSelect, userLocation = null }: AddressSearchProps) {
+export function AddressSearch({ onSelect, userLocation = null, placeholder, inputClassName }: AddressSearchProps) {
   const { t, locale } = useTranslation()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<AddressSearchResult[]>([])
@@ -95,8 +99,8 @@ export function AddressSearch({ onSelect, userLocation = null }: AddressSearchPr
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('search.placeholder')}
-          className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+          placeholder={placeholder ?? t('search.placeholder')}
+          className={`w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${inputClassName ?? ''}`}
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

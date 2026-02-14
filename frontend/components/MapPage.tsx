@@ -210,9 +210,11 @@ export function MapPage() {
           <div className="pointer-events-auto relative">
             <div className="pr-14 md:pr-0">
               <AddressSearch
-              onSelect={handleAddressSelect}
-              userLocation={userLocation}
-            />
+                onSelect={handleAddressSelect}
+                userLocation={userLocation}
+                placeholder="Добавленные адреса"
+                inputClassName="h-12 py-3"
+              />
             </div>
             {user && user.role !== UserRole.LANDLORD && (
               <div className="md:hidden absolute top-0 right-0">

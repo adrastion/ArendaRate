@@ -18,6 +18,11 @@ export default function MarketerPage() {
   const [newPassword, setNewPassword] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [contractForm, setContractForm] = useState({ fullName: '', inn: '', passport: '', phone: '' })
+  const [contractSubmitting, setContractSubmitting] = useState(false)
+  const [showContractModal, setShowContractModal] = useState(false)
+  const [contractText, setContractText] = useState('')
+  const [contractTextLoading, setContractTextLoading] = useState(false)
 
   useEffect(() => {
     checkAuth().then(() => {
@@ -48,6 +53,43 @@ export default function MarketerPage() {
       setError(e?.response?.data?.message || 'Ошибка загрузки')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAcceptContract = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!contractForm.fullName.trim() || !contractForm.passport.trim() || !contractForm.phone.trim()) {
+      setError('Заполните ФИО, паспорт и телефон')
+      return
+    }
+    setContractSubmitting(true)
+    setError('')
+    try {
+      await marketerApi.acceptContract({
+        fullName: contractForm.fullName.trim(),
+        inn: contractForm.inn.trim() || undefined,
+        passport: contractForm.passport.trim(),
+        phone: contractForm.phone.trim(),
+      })
+      await loadData()
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.response?.data?.errors?.[0]?.msg || 'Ошибка сохранения')
+    } finally {
+      setContractSubmitting(false)
+    }
+  }
+
+  const handleOpenContract = async () => {
+    setShowContractModal(true)
+    setContractTextLoading(true)
+    setContractText('')
+    try {
+      const r = await marketerApi.getContractText()
+      setContractText(r.contractText)
+    } catch {
+      setContractText('Не удалось загрузить текст договора.')
+    } finally {
+      setContractTextLoading(false)
     }
   }
 
@@ -119,6 +161,67 @@ export default function MarketerPage() {
     )
   }
 
+  if (!loading && data && !data.contractAcceptedAt) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Header />
+        <div className="max-w-lg mx-auto px-4 py-12">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Подписание договора</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Для начала работы необходимо принять условия договора и указать свои данные. Дата и время акцепта подставятся автоматически.</p>
+          {error && <div className="mb-4 p-3 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">{error}</div>}
+          <form onSubmit={handleAcceptContract} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ФИО полностью *</label>
+              <input
+                type="text"
+                value={contractForm.fullName}
+                onChange={(e) => setContractForm((f) => ({ ...f, fullName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                placeholder="Иванов Иван Иванович"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ИНН (при наличии)</label>
+              <input
+                type="text"
+                value={contractForm.inn}
+                onChange={(e) => setContractForm((f) => ({ ...f, inn: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                placeholder="12 цифр"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Паспорт (серия, номер, кем выдан) *</label>
+              <input
+                type="text"
+                value={contractForm.passport}
+                onChange={(e) => setContractForm((f) => ({ ...f, passport: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                placeholder="серия 1234 № 567890, выдан ОВД г. Москвы 01.01.2020"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Телефон *</label>
+              <input
+                type="tel"
+                value={contractForm.phone}
+                onChange={(e) => setContractForm((f) => ({ ...f, phone: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                placeholder="+7 900 123-45-67"
+                required
+              />
+            </div>
+            <button type="submit" disabled={contractSubmitting} className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50">
+              {contractSubmitting ? 'Сохранение…' : 'Принимаю условия договора'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -133,6 +236,15 @@ export default function MarketerPage() {
               <p className="text-gray-600 dark:text-gray-400">Email: {data.email}</p>
               <p className="text-gray-600 dark:text-gray-400">Процент от продаж: {data.percentage}%</p>
             </div>
+            {data.contractAcceptedAt && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Договор</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-2">Подписан: {format(new Date(data.contractAcceptedAt), 'dd.MM.yyyy HH:mm')}</p>
+                <button type="button" onClick={handleOpenContract} className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
+                  Просмотр договора
+                </button>
+              </div>
+            )}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Статистика</h2>
               <p className="text-gray-600 dark:text-gray-400">Сумма продаж по вашим промокодам: <strong>{data.totalSales} ₽</strong></p>
@@ -166,6 +278,24 @@ export default function MarketerPage() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {showContractModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowContractModal(false)}>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Договор возмездного оказания услуг</h3>
+                <button type="button" onClick={() => setShowContractModal(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Закрыть</button>
+              </div>
+              <div className="p-4 overflow-auto flex-1">
+                {contractTextLoading ? (
+                  <p className="text-gray-500 dark:text-gray-400">Загрузка…</p>
+                ) : (
+                  <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200">{contractText}</pre>
+                )}
+              </div>
             </div>
           </div>
         )}

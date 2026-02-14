@@ -149,7 +149,7 @@ router.post(
   }
 );
 
-// Список маркетологов
+// Список маркетологов (включая данные договора для отображения в админке)
 router.get('/marketers', adminAuth, async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const marketers = await prisma.marketerProfile.findMany({
@@ -159,7 +159,49 @@ router.get('/marketers', adminAuth, async (_req: Request, res: Response, next: N
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ marketers });
+    res.json({
+      marketers: marketers.map((m) => ({
+        id: m.id,
+        email: m.email,
+        percentage: m.percentage,
+        fullName: m.fullName,
+        inn: m.inn,
+        passport: m.passport,
+        phone: m.phone,
+        contractAcceptedAt: m.contractAcceptedAt?.toISOString() ?? null,
+        _count: m._count,
+      })),
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// Текст договора маркетолога (для просмотра в админке)
+router.get('/marketers/:id/contract', adminAuth, [param('id').isUUID()], async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const { id } = req.params;
+    const profile = await prisma.marketerProfile.findUnique({ where: { id } });
+    if (!profile) return res.status(404).json({ message: 'Маркетолог не найден' });
+    if (!profile.contractAcceptedAt) return res.status(400).json({ message: 'Договор не подписан' });
+
+    const { fillMarketerContract } = await import('../lib/marketerContract');
+    const text = fillMarketerContract(
+      {
+        id: profile.id,
+        email: profile.email,
+        percentage: profile.percentage,
+        fullName: profile.fullName,
+        inn: profile.inn,
+        passport: profile.passport,
+        phone: profile.phone,
+        contractAcceptedAt: profile.contractAcceptedAt,
+      },
+      { siteUrl: process.env.FRONTEND_URL }
+    );
+    res.json({ contractText: text });
   } catch (e) {
     next(e);
   }

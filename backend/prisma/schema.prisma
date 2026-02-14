@@ -169,16 +169,22 @@ model PromoCode {
 
 // Профиль маркетолога
 model MarketerProfile {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  email         String
-  percentage    Float    // Процент от продаж
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  email               String
+  percentage          Float     // Процент от продаж
+  // Данные для договора (заполняются при акцепте)
+  fullName            String?   // ФИО полностью
+  inn                 String?   // ИНН
+  passport            String?   // Паспорт: серия, номер, кем выдан
+  phone               String?   // Телефон
+  contractAcceptedAt  DateTime? // Дата и время акцепта договора
   
-  createdAt     DateTime @default(now())
+  createdAt           DateTime  @default(now())
   
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  promoCodes    PromoCode[]
-  purchases     LandlordSubscriptionPurchase[]
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promoCodes          PromoCode[]
+  purchases           LandlordSubscriptionPurchase[]
   
   @@index([email])
 }
