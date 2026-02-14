@@ -51,14 +51,16 @@ router.post('/yookassa-webhook', express.json(), async (req: Request, res: Respo
       return
     }
 
+    const subscriptionId = pending.subscriptionId
+
     await prisma.$transaction(async (tx) => {
       await tx.landlordSubscription.update({
-        where: { id: pending.subscriptionId },
+        where: { id: subscriptionId },
         data: { responsesRemaining: { increment: pending.planType } },
       })
       await tx.landlordSubscriptionPurchase.create({
         data: {
-          subscriptionId: pending.subscriptionId,
+          subscriptionId,
           planType: pending.planType,
           amount: pending.amount,
           responsesGranted: pending.planType,
