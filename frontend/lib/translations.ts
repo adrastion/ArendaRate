@@ -132,7 +132,7 @@ export const translations = {
     reviews: {
       title: 'Отзывы о жилье',
       mission: 'Наша миссия',
-      missionP1: 'ArendaRate — это платформа, созданная для повышения прозрачности рынка аренды жилья. Мы предоставляем будущим арендаторам доступ к проверенным отзывам и оценкам предыдущих жильцов, помогая принимать обоснованные решения при выборе жилья.',
+      missionP1: 'ArendaRate — это платформа, созданная для повышения прозрачности аренды жилья. Мы предоставляем будущим арендаторам доступ к проверенным отзывам и оценкам предыдущих жильцов, помогая принимать обоснованные решения при выборе жилья.',
       missionP2: 'Наша цель — создать честную и открытую экосистему, где каждый может поделиться своим опытом и получить достоверную информацию о жилье перед заключением договора аренды.',
       howTitle: 'Как это работает',
       forTenants: 'Для арендаторов',
@@ -552,7 +552,7 @@ export const translations = {
     reviews: {
       title: 'Housing reviews',
       mission: 'Our mission',
-      missionP1: 'ArendaRate is a platform created to increase transparency in the rental market. We give future tenants access to verified reviews and ratings from previous residents, helping them make informed decisions when choosing housing.',
+      missionP1: 'ArendaRate is a platform created to increase transparency in housing rental. We give future tenants access to verified reviews and ratings from previous residents, helping them make informed decisions when choosing housing.',
       missionP2: 'Our goal is to build an honest and open ecosystem where everyone can share their experience and get reliable information about housing before signing a lease.',
       howTitle: 'How it works',
       forTenants: 'For tenants',

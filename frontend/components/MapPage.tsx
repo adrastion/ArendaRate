@@ -206,14 +206,14 @@ export function MapPage() {
     <div className="h-screen flex flex-col">
       <Header />
       <div className="flex-1 relative">
-        <div className="absolute top-4 left-4 right-4 md:right-auto z-10 md:w-96 md:max-w-[calc(100%-2rem)] pointer-events-none">
+        <div className="absolute top-4 left-4 md:left-4 z-10 w-[calc(100%-2rem)] md:w-52 pointer-events-none left-4">
           <div className="pointer-events-auto relative">
             <div className="pr-14 md:pr-0">
               <AddressSearch
                 onSelect={handleAddressSelect}
                 userLocation={userLocation}
                 placeholder="Добавленные адреса"
-                inputClassName="h-12 py-3"
+                inputClassName="h-12 py-3 w-full"
               />
             </div>
             {user && user.role !== UserRole.LANDLORD && (
