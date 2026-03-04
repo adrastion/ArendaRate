@@ -206,7 +206,7 @@ export function MapPage() {
     <div className="h-screen flex flex-col">
       <Header />
       <div className="flex-1 relative">
-        <div className="absolute top-4 left-4 md:left-4 z-10 w-[calc(100%-2rem)] md:w-52 pointer-events-none left-4">
+        <div className="absolute top-4 left-4 md:left-4 z-10 w-[calc(100%-2rem)] md:w-64 pointer-events-none">
           <div className="pointer-events-auto relative">
             <div className="pr-14 md:pr-0">
               <AddressSearch

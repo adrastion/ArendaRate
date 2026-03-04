@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 import { VKOneTap } from '@/components/VKOneTap'
+import { YandexIdButton } from '@/components/YandexIdButton'
 
 export default function LoginPage() {
   const { t } = useTranslation()
@@ -35,7 +36,13 @@ export default function LoginPage() {
       await login(email, password)
       router.push('/map')
     } catch (err: any) {
-      setError(err.response?.data?.message || t('login.error'))
+      const status = err.response?.status
+      const msg = err.response?.data?.message
+      if (status === 401 || msg === 'Invalid email or password') {
+        setError(t('login.invalidCredentials'))
+      } else {
+        setError(msg || t('login.error'))
+      }
     } finally {
       setIsLoading(false)
     }
@@ -154,13 +161,17 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <button
-              type="button"
-              onClick={() => handleOAuth('yandex')}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-            >
-              {t('login.yandex')}
-            </button>
+            <div className="min-h-[40px] flex items-center justify-center">
+              <YandexIdButton userType={asLandlord ? 'landlord' : 'renter'} className="w-full">
+                <button
+                  type="button"
+                  onClick={() => handleOAuth('yandex')}
+                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
+                  {t('login.yandex')}
+                </button>
+              </YandexIdButton>
+            </div>
             <div className="flex justify-center">
               <VKOneTap
                 contentId="SIGN_IN"

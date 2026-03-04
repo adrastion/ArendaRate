@@ -7,6 +7,13 @@ import { createError } from '../middleware/errorHandler';
 
 const router = express.Router();
 
+// Публичная конфигурация для фронтенда (кнопка Яндекс ID и т.п.) — без авторизации
+router.get('/public-config', (_req: Request, res: Response) => {
+  res.json({
+    yandexClientId: process.env.YANDEX_CLIENT_ID || '',
+  });
+});
+
 // Регистрация
 router.post(
   '/register',
@@ -272,6 +279,68 @@ router.get(
       }
       res.redirect(`${frontendUrl}/auth/callback?token=${user.token}`);
     })(req, res, next);
+  }
+);
+
+// Яндекс ID — обмен access_token на JWT (кнопка из конструктора, мгновенная авторизация)
+router.post(
+  '/yandex/token',
+  [
+    body('access_token').notEmpty().withMessage('access_token is required'),
+    body('userType').optional().isIn(['renter', 'landlord']),
+  ],
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const accessToken = req.body.access_token as string;
+      const userType = req.body.userType as string | undefined;
+
+      const yandexRes = await fetch('https://login.yandex.ru/info?format=json', {
+        method: 'GET',
+        headers: { Authorization: `OAuth ${accessToken}` },
+      });
+
+      if (!yandexRes.ok) {
+        console.error('Yandex user info error:', yandexRes.status);
+        return res.status(401).json({ message: 'Invalid or expired Yandex token' });
+      }
+
+      const ya = (await yandexRes.json()) as {
+        id?: string;
+        display_name?: string;
+        real_name?: string;
+        default_email?: string;
+        emails?: string[];
+        default_avatar_id?: string;
+      };
+
+      if (!ya?.id) {
+        return res.status(401).json({ message: 'Invalid Yandex user data' });
+      }
+
+      const email = ya.default_email || ya.emails?.[0] || null;
+      const name = (ya.real_name || ya.display_name || '').trim() || 'User';
+      const avatar = ya.default_avatar_id
+        ? `https://avatars.yandex.net/get-yapic/${ya.default_avatar_id}/islands-200`
+        : null;
+
+      const { user, token } = await authService.findOrCreateOAuthUser(
+        'yandex',
+        String(ya.id),
+        email,
+        name,
+        avatar
+      );
+
+      const needLandlordPlan = userType === 'landlord';
+      res.json(needLandlordPlan ? { user, token, needLandlordPlan: true } : { user, token });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 

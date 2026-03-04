@@ -27,8 +27,8 @@ export default function AboutPage() {
             <section className="mb-10">
               <div className="text-center mb-8">
                 <div className="text-4xl md:text-5xl font-extrabold tracking-wide text-gray-900 dark:text-white mb-3">
-                  <span className="text-gray-900 dark:text-white">Arenda</span>
-                  <span className="logo-rate text-primary-400 dark:text-primary-400">Rate</span>
+                  <span className="text-gray-900 dark:text-white">Аренда</span>
+                  <span className="logo-rate text-primary-400 dark:text-primary-400">Рейт</span>
                 </div>
                 <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                   {t('about.charter')}

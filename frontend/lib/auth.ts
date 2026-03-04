@@ -60,6 +60,16 @@ export const auth = {
     }
   },
 
+  /** Яндекс ID: вход по access_token (кнопка из конструктора). */
+  yandexTokenLogin: async (
+    accessToken: string,
+    userType?: 'renter' | 'landlord'
+  ): Promise<{ user: User; needLandlordPlan?: boolean }> => {
+    const response = await authApi.yandexTokenLogin(accessToken, userType)
+    auth.setToken(response.token)
+    return { user: response.user, needLandlordPlan: response.needLandlordPlan }
+  },
+
   /** VK ID One Tap: вход по access_token от VK. При userType=landlord возвращает needLandlordPlan для редиректа на оформление подписки. */
   vkTokenLogin: async (
     accessToken: string,

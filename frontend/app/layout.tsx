@@ -10,8 +10,8 @@ const siteUrl = 'https://arendarate.ru'
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'ArendaRate — Отзывы об аренде жилья',
-    template: '%s | ArendaRate',
+    default: 'АрендаРейт — Отзывы об аренде жилья',
+    template: '%s | АрендаРейт',
   },
   description:
     'Честная аренда начинается здесь. Читай отзывы арендаторов, смотри оценки по адресам на карте. Платформа отзывов об аренде жилья с интерактивной картой.',
@@ -23,22 +23,22 @@ export const metadata: Metadata = {
     'отзывы арендаторов',
     'карта отзывов',
     'снять квартиру',
-    'ArendaRate',
+    'АрендаРейт',
   ],
-  authors: [{ name: 'ArendaRate', url: siteUrl }],
-  creator: 'ArendaRate',
+  authors: [{ name: 'АрендаРейт', url: siteUrl }],
+  creator: 'АрендаРейт',
   openGraph: {
     type: 'website',
     locale: 'ru_RU',
     url: siteUrl,
-    siteName: 'ArendaRate',
-    title: 'ArendaRate — Отзывы об аренде жилья',
+    siteName: 'АрендаРейт',
+    title: 'АрендаРейт — Отзывы об аренде жилья',
     description:
       'Честная аренда начинается здесь. Читай отзывы арендаторов, смотри оценки по адресам на карте.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ArendaRate — Отзывы об аренде жилья',
+    title: 'АрендаРейт — Отзывы об аренде жилья',
     description: 'Платформа отзывов об аренде жилья с интерактивной картой.',
   },
   robots: {

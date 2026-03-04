@@ -170,7 +170,7 @@ router.post(
 
       const payment = await createYookassaPayment({
         amountRub: amount,
-        description: `ArendaRate: ${planType} ответов на отзывы`,
+        description: `АрендаРейт: ${planType} ответов на отзывы`,
         returnUrl,
         metadata: {
           landlordId: userId,

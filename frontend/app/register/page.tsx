@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
 import { VKOneTap } from '@/components/VKOneTap'
+import { YandexIdButton } from '@/components/YandexIdButton'
 import { LandlordSubscriptionModal } from '@/components/LandlordSubscriptionModal'
 import { userApi } from '@/lib/api'
 
@@ -306,14 +307,27 @@ export default function RegisterPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <button
-              type="button"
-              disabled={!acceptedTerms}
-              onClick={() => handleOAuth('yandex')}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {t('register.yandex')}
-            </button>
+            <div className="min-h-[40px] flex items-center justify-center">
+              {acceptedTerms ? (
+                <YandexIdButton userType={userType} className="w-full">
+                  <button
+                    type="button"
+                    onClick={() => handleOAuth('yandex')}
+                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    {t('register.yandex')}
+                  </button>
+                </YandexIdButton>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 opacity-50 cursor-not-allowed"
+                >
+                  {t('register.yandex')}
+                </button>
+              )}
+            </div>
             <div className="flex justify-center">
               <VKOneTap
                 contentId="SIGN_UP"

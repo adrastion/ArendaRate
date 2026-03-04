@@ -77,8 +77,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Удаление токена при 401
-      if (typeof window !== 'undefined') {
+      const isLoginRequest =
+        error.config?.url?.includes('/auth/login') ||
+        error.config?.url?.includes('auth/login')
+      // Не редиректить на /login при неверном логине/пароле — пусть страница входа покажет ошибку
+      if (!isLoginRequest && typeof window !== 'undefined') {
         localStorage.removeItem('token')
         window.location.href = '/login'
       }
@@ -88,6 +91,12 @@ api.interceptors.response.use(
 )
 
 export const authApi = {
+  /** Публичная конфигурация (Client ID для кнопки Яндекс ID и т.д.). */
+  getPublicConfig: async (): Promise<{ yandexClientId: string }> => {
+    const response = await api.get('/auth/public-config')
+    return response.data
+  },
+
   register: async (data: {
     email: string
     password: string
@@ -128,6 +137,18 @@ export const authApi = {
   /** Создать аккаунт арендатора и привязать к текущему арендодателю (после принятия соглашения). */
   createLinkedRenter: async (): Promise<{ user: User; token: string }> => {
     const response = await api.post('/auth/create-linked-renter', { acceptTerms: true })
+    return response.data
+  },
+
+  /** Яндекс ID (кнопка из конструктора): обмен access_token на JWT. */
+  yandexTokenLogin: async (
+    accessToken: string,
+    userType?: 'renter' | 'landlord'
+  ): Promise<{ user: User; token: string; needLandlordPlan?: boolean }> => {
+    const response = await api.post('/auth/yandex/token', {
+      access_token: accessToken,
+      ...(userType && { userType }),
+    })
     return response.data
   },
 

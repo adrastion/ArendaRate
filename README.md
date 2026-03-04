@@ -174,7 +174,8 @@ Frontend будет доступен на http://localhost:3000
 1. Перейдите на https://oauth.yandex.ru/
 2. Создайте новое приложение
 3. Получите Client ID и Client Secret
-4. Добавьте callback URL: `http://localhost:3001/api/auth/yandex/callback`
+4. Добавьте callback URL для бэкенда: `http://localhost:3001/api/auth/yandex/callback`
+5. Для кнопки из [конструктора Яндекс ID](https://yandex.ru/dev/id/doc/ru/suggest/but-const) добавьте Redirect URI фронтенда: `http://localhost:3000/auth/yandex-token` (и для production: `https://ваш-домен/auth/yandex-token`). В frontend задайте `NEXT_PUBLIC_YANDEX_CLIENT_ID` (тот же Client ID).
 
 ### VK ID
 1. Перейдите на https://dev.vk.com/
