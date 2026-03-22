@@ -51,10 +51,23 @@ router.post(
       // Арендодатель не может оставлять отзывы
       const user = await prisma.user.findUnique({
         where: { id: req.user!.id },
-        select: { role: true },
+        select: { role: true, email: true, emailVerified: true, yandexId: true, vkId: true },
       });
       if (user?.role === 'LANDLORD') {
         throw createError('Landlords cannot leave reviews', 403);
+      }
+      if (!user) {
+        throw createError('User not found', 404);
+      }
+      // Оставлять отзывы можно только при подтверждённом email для обычной регистрации.
+      // На OAuth через Яндекс / VK это ограничение не распространяется.
+      const isOAuthUser = !!user.yandexId || !!user.vkId;
+      if (!isOAuthUser && (!user.email || !user.emailVerified)) {
+        throw createError(
+          'Please confirm your email in profile before leaving reviews',
+          403,
+          'EMAIL_NOT_VERIFIED'
+        );
       }
       // Проверка: арендатор не может оставить отзыв на квартиру привязанного арендодателя
       const currentUser = await prisma.user.findUnique({

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { reviewApi, userApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
+import { reviewApi, userApi, authApi, getUploadUrl, getAvatarUrl } from '@/lib/api'
 import { Review } from '@/types'
 import { format } from 'date-fns'
 import { Header } from '@/components/Header'
@@ -38,11 +38,19 @@ export default function ProfilePage() {
   const [renterAgreementAccepted, setRenterAgreementAccepted] = useState(false)
   const [showTopUpModal, setShowTopUpModal] = useState(false)
   const [topUpLoading, setTopUpLoading] = useState(false)
+  const [verificationSending, setVerificationSending] = useState(false)
 
   const isLandlord = user?.role === UserRole.LANDLORD
   const isRenter = user?.role === UserRole.RENTER
   const hasLinkedLandlord = isRenter && !!user?.linkedLandlordId
   const hasLinkedRenter = isLandlord && !!user?.hasLinkedRenter
+
+  /** Отзывы доступны только с подтверждённым email, кроме входа через Яндекс/VK. */
+  const needsEmailVerification =
+    !!user &&
+    user.role !== UserRole.LANDLORD &&
+    user.isOAuthUser !== true &&
+    (!user.email || user.emailVerified !== true)
 
   useEffect(() => {
     let cancelled = false
@@ -60,6 +68,10 @@ export default function ProfilePage() {
       }
       if (searchParams.get('payment') === 'done') {
         setProfileSuccess(t('landlord.topUpSuccess'))
+        window.history.replaceState({}, '', '/profile')
+      }
+      if (searchParams.get('emailVerified') === '1') {
+        setProfileSuccess(t('profile.emailVerifiedSuccess'))
         window.history.replaceState({}, '', '/profile')
       }
     })
@@ -83,11 +95,35 @@ export default function ProfilePage() {
     try {
       const res = await userApi.updateEmail(emailDraft)
       setUser(res.user)
-      setProfileSuccess(t('profile.emailUpdated'))
+      let successMsg = t('profile.emailUpdated')
+      if (res.user.email && res.user.isOAuthUser !== true) {
+        try {
+          await authApi.sendEmailVerification()
+          successMsg = `${t('profile.emailUpdated')} ${t('profile.emailUpdatedVerifyHint')}`
+        } catch {
+          successMsg = `${t('profile.emailUpdated')} (${t('profile.verificationEmailError')})`
+        }
+      }
+      setProfileSuccess(successMsg)
     } catch (err: any) {
       setProfileError(err.response?.data?.message || t('profile.emailError'))
     } finally {
       setEmailSaving(false)
+    }
+  }
+
+  const sendVerificationEmail = async () => {
+    if (!user?.email) return
+    setProfileError('')
+    setProfileSuccess('')
+    setVerificationSending(true)
+    try {
+      await authApi.sendEmailVerification()
+      setProfileSuccess(t('profile.verificationEmailSent'))
+    } catch (err: any) {
+      setProfileError(err.response?.data?.message || t('profile.verificationEmailError'))
+    } finally {
+      setVerificationSending(false)
     }
   }
 
@@ -302,7 +338,74 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="mt-6 grid gap-4">
+          {needsEmailVerification && (
+            <div
+              className="mt-6 relative overflow-hidden rounded-2xl border border-sky-200/90 dark:border-sky-800/40 bg-gradient-to-br from-sky-50/95 via-white to-indigo-50/90 dark:from-sky-950/35 dark:via-gray-900 dark:to-indigo-950/30 shadow-lg shadow-sky-900/[0.06] dark:shadow-none ring-1 ring-black/[0.04] dark:ring-white/[0.06]"
+              role="status"
+            >
+              <div
+                className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br from-sky-400/20 to-indigo-400/10 dark:from-sky-500/10 dark:to-indigo-500/5"
+                aria-hidden
+              />
+              <div className="relative p-5 sm:p-6 flex flex-col sm:flex-row gap-5 sm:items-start">
+                <div
+                  className="shrink-0 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-600/25"
+                  aria-hidden
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="h-7 w-7"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                    />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex-1 space-y-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
+                      {t('profile.emailVerificationTitle')}
+                    </h3>
+                    <p className="mt-1 text-sm font-medium text-sky-700 dark:text-sky-300/95">
+                      {t('profile.emailVerificationSubtitle')}
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {!user?.email
+                      ? t('profile.emailVerificationNoEmail')
+                      : t('profile.emailVerificationBanner')}
+                  </p>
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 pt-1">
+                    {user?.email ? (
+                      <button
+                        type="button"
+                        onClick={sendVerificationEmail}
+                        disabled={verificationSending}
+                        className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 disabled:pointer-events-none shadow-md shadow-sky-600/20 transition-colors"
+                      >
+                        {verificationSending ? t('profile.saving') : t('profile.sendVerificationEmail')}
+                      </button>
+                    ) : (
+                      <Link
+                        href="#profile-email-section"
+                        className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-sky-700 dark:text-sky-200 bg-white/80 dark:bg-gray-800/80 border border-sky-200/80 dark:border-sky-700/50 hover:bg-sky-50 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        {t('profile.emailVerificationScrollHint')}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div id="profile-email-section" className="mt-6 scroll-mt-24 grid gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('profile.emailLabel')}</label>
               <div className="flex flex-col sm:flex-row gap-2">

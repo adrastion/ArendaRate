@@ -4,8 +4,33 @@ import passport from 'passport';
 import { authService } from '../services/authService';
 import { authenticate } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
+import { prisma } from '../lib/prisma';
+import { sendEmail } from '../services/emailService';
+import { randomBytes } from 'crypto';
 
 const router = express.Router();
+
+async function createAndSendEmailVerification(userId: string, email: string) {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 часа
+
+  await prisma.emailVerificationToken.create({
+    data: {
+      userId,
+      token,
+      expiresAt,
+    },
+  });
+
+  const link = `${frontendUrl.replace(/\/$/, '')}/auth/verify-email?token=${token}`;
+
+  await sendEmail({
+    to: email,
+    subject: 'Подтверждение email для АрендаРейт',
+    text: `Здравствуйте!\n\nПерейдите по ссылке, чтобы подтвердить email для АрендаРейт:\n${link}\n\nЕсли вы не запрашивали подтверждение, просто проигнорируйте это письмо.`,
+  });
+}
 
 // Публичная конфигурация для фронтенда (кнопка Яндекс ID и т.п.) — без авторизации
 router.get('/public-config', (_req: Request, res: Response) => {
@@ -52,6 +77,15 @@ router.post(
 
       const { user, token } = await authService.register(registerData);
 
+      // Автоматически отправляем письмо для подтверждения email (для классической регистрации по email)
+      if (user.email) {
+        try {
+          await createAndSendEmailVerification(user.id, user.email);
+        } catch (err) {
+          console.error('Failed to send verification email after register:', err);
+        }
+      }
+
       res.status(201).json({ user, token });
     } catch (error) {
       next(error);
@@ -85,6 +119,68 @@ router.post(
   }
 );
 
+// Отправить письмо для подтверждения email (повторная отправка)
+router.post(
+  '/send-email-verification',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user!.id },
+        select: { id: true, email: true, emailVerified: true },
+      });
+
+      if (!user) throw createError('User not found', 404);
+      if (!user.email) throw createError('Email is not set', 400);
+      if (user.emailVerified) throw createError('Email already verified', 400);
+
+      // Удаляем старые токены, если были
+      await prisma.emailVerificationToken.deleteMany({
+        where: { userId: user.id },
+      });
+
+      await createAndSendEmailVerification(user.id, user.email);
+      res.json({ status: 'ok' });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Подтверждение email по токену
+router.get('/verify-email', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = String(req.query.token || '');
+    if (!token) {
+      throw createError('Token is required', 400);
+    }
+
+    const record = await prisma.emailVerificationToken.findUnique({
+      where: { token },
+    });
+
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      throw createError('Invalid or expired token', 400);
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: record.userId },
+        data: { emailVerified: true },
+      }),
+      prisma.emailVerificationToken.update({
+        where: { id: record.id },
+        data: { usedAt: new Date() },
+      }),
+    ]);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl.replace(/\/$/, '')}/profile?emailVerified=1`);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Получение текущего пользователя (включая данные арендодателя)
 router.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -95,6 +191,9 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
       select: {
         id: true,
         email: true,
+        emailVerified: true,
+        yandexId: true,
+        vkId: true,
         name: true,
         avatar: true,
         role: true,
@@ -123,7 +222,14 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
       throw createError('User not found', 404);
     }
 
-    const { landlordSubscription, landlordApartments, ...rest } = user;
+    const {
+      landlordSubscription,
+      landlordApartments,
+      yandexId,
+      vkId,
+      ...rest
+    } = user;
+    const isOAuthUser = !!(yandexId || vkId);
     let hasLinkedRenter = false;
     let displayEmail = rest.email;
     if (rest.role === 'LANDLORD') {
@@ -147,6 +253,7 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
     const response = {
       ...rest,
       email: displayEmail,
+      isOAuthUser,
       landlordResponseCount: landlordSubscription?.responsesRemaining ?? null,
       landlordApartments: landlordApartments ?? [],
       hasLinkedRenter,

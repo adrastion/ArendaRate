@@ -94,7 +94,17 @@ export function MapPage() {
   const loadMarkers = useCallback(async () => {
     try {
       const response = await addressApi.getMapMarkers()
-      setMarkers(response.markers)
+      const raw = Array.isArray(response.markers) ? response.markers : []
+      // Дублируем фильтр бэкенда: старые ответы / кэш прокси не должны показывать «пустые» дома
+      setMarkers(
+        raw.filter((m: Marker) => {
+          if (m == null) return false
+          const rc = Number(m.reviewsCount)
+          const lat = Number(m.latitude)
+          const lng = Number(m.longitude)
+          return Number.isFinite(rc) && rc > 0 && Number.isFinite(lat) && Number.isFinite(lng)
+        })
+      )
     } catch (error) {
       console.error('Error loading markers:', error)
     }
@@ -160,12 +170,16 @@ export function MapPage() {
       console.log('Loading address data for:', addressId)
       const response = await addressApi.getById(addressId)
       console.log('Address loaded:', response)
-      
-      const totalReviewsCount = response.apartments.reduce(
-        (sum, apt) => sum + (apt.reviewsCount ?? 0),
+
+      // Только квартиры с опубликованными отзывами (дублируем фильтр бэкенда на случай старого кэша)
+      const apartmentsWithReviews = response.apartments.filter(
+        (apt) => Number(apt.reviewsCount ?? 0) > 0
+      )
+      const totalReviewsCount = apartmentsWithReviews.reduce(
+        (sum, apt) => sum + Number(apt.reviewsCount ?? 0),
         0
       )
-      
+
       setSelectedAddress({
         id: response.address.id,
         address: {
@@ -174,7 +188,7 @@ export function MapPage() {
           street: response.address.street,
           building: response.address.building,
         },
-        apartments: response.apartments.map((apt) => ({
+        apartments: apartmentsWithReviews.map((apt) => ({
           id: apt.id,
           number: apt.number,
           reviewsCount: apt.reviewsCount ?? 0,

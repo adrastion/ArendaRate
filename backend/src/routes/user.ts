@@ -298,12 +298,15 @@ router.put(
         throw createError('User with this email already exists', 400);
       }
 
-      const user = await prisma.user.update({
+      const updated = await prisma.user.update({
         where: { id: req.user!.id },
-        data: { email },
+        data: { email, emailVerified: false },
         select: {
           id: true,
           email: true,
+          emailVerified: true,
+          yandexId: true,
+          vkId: true,
           name: true,
           avatar: true,
           role: true,
@@ -311,7 +314,10 @@ router.put(
         },
       });
 
-      res.json({ user });
+      const { yandexId, vkId, ...userFields } = updated;
+      res.json({
+        user: { ...userFields, isOAuthUser: !!(yandexId || vkId) },
+      });
     } catch (error) {
       next(error);
     }

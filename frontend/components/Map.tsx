@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic'
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { addressApi } from '@/lib/api'
 import { pluralApartmentsLocale, pluralReviewsLocale } from '@/lib/pluralize'
 import { useTranslation } from '@/lib/useTranslation'
 
@@ -234,7 +233,7 @@ export function Map({ markers, onMarkerClick, center = DEFAULT_CENTER, zoom = DE
                 font-size: 11px;
                 cursor: pointer;
               ">
-                ${marker.apartmentsCount}
+                ${marker.reviewsCount}
               </div>
             `,
             iconSize: [36, 36],

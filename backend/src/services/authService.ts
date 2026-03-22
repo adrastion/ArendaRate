@@ -65,6 +65,7 @@ export const authService = {
       select: {
         id: true,
         email: true,
+        emailVerified: true,
         name: true,
         avatar: true,
         role: true,
@@ -85,7 +86,7 @@ export const authService = {
     // Генерация JWT токена
     const token = getJwtToken(user.id);
 
-    return { user, token };
+    return { user: { ...user, isOAuthUser: false }, token };
   },
 
   async login(data: LoginData) {
@@ -109,6 +110,8 @@ export const authService = {
       user: {
         id: user.id,
         email: user.email,
+        emailVerified: user.emailVerified,
+        isOAuthUser: !!(user.yandexId || user.vkId),
         name: user.name,
         avatar: user.avatar,
         role: user.role,
@@ -170,6 +173,8 @@ export const authService = {
       user: {
         id: user.id,
         email: user.email,
+        emailVerified: user.emailVerified,
+        isOAuthUser: !!(user.yandexId || user.vkId),
         name: user.name,
         avatar: user.avatar,
         role: user.role,
@@ -204,12 +209,29 @@ export const authService = {
 
     const target = await prisma.user.findUnique({
       where: { id: targetId },
-      select: { id: true, email: true, name: true, avatar: true, role: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+        yandexId: true,
+        vkId: true,
+        name: true,
+        avatar: true,
+        role: true,
+        createdAt: true,
+      },
     });
     if (!target) throw createError('Linked account not found', 404);
 
+    const { yandexId, vkId, ...targetRest } = target;
     const token = getJwtToken(target.id);
-    return { user: target, token };
+    return {
+      user: {
+        ...targetRest,
+        isOAuthUser: !!(yandexId || vkId),
+      },
+      token,
+    };
   },
 
   /** Создание аккаунта арендодателя и привязка к текущему арендатору (тот же человек). */
@@ -234,7 +256,15 @@ export const authService = {
         name: renter.name,
         role: 'LANDLORD',
       },
-      select: { id: true, email: true, name: true, avatar: true, role: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+        name: true,
+        avatar: true,
+        role: true,
+        createdAt: true,
+      },
     });
 
     await prisma.landlordSubscription.create({
@@ -250,7 +280,10 @@ export const authService = {
     });
 
     const token = getJwtToken(landlordUser.id);
-    return { user: { ...landlordUser, email: renter.email }, token };
+    return {
+      user: { ...landlordUser, email: renter.email, isOAuthUser: false },
+      token,
+    };
   },
 
   /** Создание аккаунта арендатора и привязка к текущему арендодателю (тот же человек). */
@@ -276,11 +309,22 @@ export const authService = {
         role: 'RENTER',
         linkedLandlordId: landlordId,
       },
-      select: { id: true, email: true, name: true, avatar: true, role: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+        name: true,
+        avatar: true,
+        role: true,
+        createdAt: true,
+      },
     });
 
     const token = getJwtToken(renterUser.id);
-    return { user: { ...renterUser, email: null }, token };
+    return {
+      user: { ...renterUser, email: null, isOAuthUser: false },
+      token,
+    };
   },
 };
 

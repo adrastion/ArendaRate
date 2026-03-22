@@ -112,6 +112,133 @@ export default function AddressPage() {
     fromDatabase: true,
   }
 
+  const renderReviewCard = (review: Review, apartment: ApartmentWithReviews) => (
+    <div key={review.id} className="p-6">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          {review.user?.avatar ? (
+            <img
+              src={getAvatarUrl(review.user?.avatar) ?? review.user?.avatar ?? ''}
+              alt={review.user.name}
+              className="w-10 h-10 rounded-full"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
+              {(review.user?.name || '?').charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <div className="font-semibold text-gray-900 dark:text-gray-100">
+              {review.user?.name ?? t('address.user')}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {format(new Date(review.periodFrom), 'dd.MM.yyyy')} —{' '}
+              {format(new Date(review.periodTo), 'dd.MM.yyyy')}
+            </div>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="flex items-center space-x-2">
+            <div>
+              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                {review.averageRating.toFixed(1)}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{t('ratings.of5')}</div>
+            </div>
+            {isModerator && (
+              <button
+                type="button"
+                onClick={() => handleDeleteReview(review.id)}
+                disabled={deletingReviewId === review.id}
+                className="ml-2 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title={t('address.deleteReview')}
+              >
+                {deletingReviewId === review.id ? t('address.deleting') : '✕'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <p className="mb-4 text-gray-900 dark:text-gray-100">{review.comment}</p>
+
+      {review.ratings?.length > 0 && (
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => toggleReviewExpansion(review.id)}
+            className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 mb-2"
+          >
+            {expandedReviews.has(review.id) ? t('address.hideRatings') : t('address.showRatings')}
+          </button>
+          {expandedReviews.has(review.id) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+              {review.ratings.map((rating) => (
+                <div key={rating.id} className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">
+                    {t(`ratings.${rating.criterion}`)}
+                  </span>
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((score) => (
+                      <span
+                        key={score}
+                        className={getScoreViewClasses(score, score <= rating.score)}
+                        title={score === 1 ? t('ratings.bad') : score === 5 ? t('ratings.good') : undefined}
+                      >
+                        {score}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {review.photos?.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+          {review.photos.map((photo) => (
+            <a
+              key={photo.id}
+              href={getUploadUrl(photo.url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getUploadUrl(photo.url)}
+                alt={t('address.photoAlt')}
+                className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+          ))}
+        </div>
+      )}
+
+      {user && (
+        <ReviewActions
+          reviewId={review.id}
+          apartmentId={apartment.id}
+          canReply={!!(
+            isLandlord &&
+            user?.landlordApartments?.some((la: { apartmentId: string }) => la.apartmentId === apartment.id)
+          )}
+          landlordResponse={review.landlordResponse}
+          onReplySuccess={loadAddress}
+        />
+      )}
+      <div className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+        {format(new Date(review.createdAt), 'dd.MM.yyyy')}
+      </div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -143,7 +270,7 @@ export default function AddressPage() {
         </div>
 
         <div className="space-y-6">
-          {totalReviews === 0 ? (
+          {apartments.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
               <p className="text-gray-500 dark:text-gray-400 mb-4">{t('address.noReviewsYet')}</p>
               {user && user.role !== UserRole.LANDLORD && (
@@ -151,143 +278,30 @@ export default function AddressPage() {
               )}
             </div>
           ) : (
-            apartments.map((apartment) =>
-              apartment.reviews.length > 0 ? (
-                <div key={apartment.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                  <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {t('address.apartment')} {apartment.number}
-                    </h2>
-                  </div>
-                  <div className="divide-y divide-gray-100">
-                    {apartment.reviews.map((review) => (
-                      <div key={review.id} className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center space-x-3">
-                            {review.user?.avatar ? (
-                              <img
-                                src={getAvatarUrl(review.user?.avatar) ?? review.user?.avatar ?? ''}
-                                alt={review.user.name}
-                                className="w-10 h-10 rounded-full"
-                                loading="lazy"
-                                decoding="async"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
-                                {(review.user?.name || '?').charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                            <div>
-                              <div className="font-semibold text-gray-900 dark:text-gray-100">{review.user?.name ?? t('address.user')}</div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {format(new Date(review.periodFrom), 'dd.MM.yyyy')} —{' '}
-                                {format(new Date(review.periodTo), 'dd.MM.yyyy')}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center space-x-2">
-                              <div>
-                                <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                                  {review.averageRating.toFixed(1)}
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">{t('ratings.of5')}</div>
-                              </div>
-                              {isModerator && (
-                                <button
-                                  onClick={() => handleDeleteReview(review.id)}
-                                  disabled={deletingReviewId === review.id}
-                                  className="ml-2 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                  title={t('address.deleteReview')}
-                                >
-                                  {deletingReviewId === review.id ? t('address.deleting') : '✕'}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="mb-4 text-gray-900 dark:text-gray-100">{review.comment}</p>
-
-                        {review.ratings?.length > 0 && (
-                          <div className="mb-4">
-                            <button
-                              onClick={() => toggleReviewExpansion(review.id)}
-                              className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 mb-2"
-                            >
-                              {expandedReviews.has(review.id)
-                                ? t('address.hideRatings')
-                                : t('address.showRatings')}
-                            </button>
-                            {expandedReviews.has(review.id) && (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                                {review.ratings.map((rating) => (
-                                  <div
-                                    key={rating.id}
-                                    className="flex justify-between items-center text-sm"
-                                  >
-                                    <span className="text-gray-600 dark:text-gray-300">
-                                      {t(`ratings.${rating.criterion}`)}
-                                    </span>
-                                    <div className="flex space-x-1">
-                                      {[1, 2, 3, 4, 5].map((score) => (
-                                        <span
-                                          key={score}
-                                          className={getScoreViewClasses(score, score <= rating.score)}
-                                          title={score === 1 ? t('ratings.bad') : score === 5 ? t('ratings.good') : undefined}
-                                        >
-                                          {score}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {review.photos?.length > 0 && (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-                            {review.photos.map((photo) => (
-                              <a
-                                key={photo.id}
-                                href={getUploadUrl(photo.url)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={getUploadUrl(photo.url)}
-                                  alt={t('address.photoAlt')}
-                                  className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                                  loading="lazy"
-                                  decoding="async"
-                                />
-                              </a>
-                            ))}
-                          </div>
-                        )}
-
-                        {user && (
-                          <ReviewActions
-                            reviewId={review.id}
-                            apartmentId={apartment.id}
-                            canReply={!!(isLandlord && user?.landlordApartments?.some((la: { apartmentId: string }) => la.apartmentId === apartment.id))}
-                            landlordResponse={(review as any).landlordResponse}
-                            onReplySuccess={loadAddress}
-                          />
-                        )}
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                          {format(new Date(review.createdAt), 'dd.MM.yyyy')}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+            apartments.map((apartment) => (
+              <div
+                key={apartment.id}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+              >
+                <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {t('address.apartment')} {apartment.number}
+                  </h2>
                 </div>
-              ) : null
-            )
+                {apartment.reviews.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">{t('apartment.noReviews')}</p>
+                    {user && user.role !== UserRole.LANDLORD && (
+                      <AddReviewButton onClick={() => setShowAddReview(true)} />
+                    )}
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {apartment.reviews.map((review) => renderReviewCard(review, apartment))}
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
       </div>

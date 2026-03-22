@@ -4,7 +4,18 @@ import { optionalAuth, authenticate } from '../middleware/auth';
 import { addressService } from '../services/addressService';
 import { nominatimService } from '../services/nominatimService';
 import { prisma } from '../lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, ReviewStatus } from '@prisma/client';
+
+/** Дома на карте и в кратком ответе адреса — только с хотя бы одним одобренным отзывом. */
+const HAS_APPROVED_REVIEW = {
+  apartments: {
+    some: {
+      reviews: {
+        some: { status: ReviewStatus.APPROVED },
+      },
+    },
+  },
+} as const;
 
 type AddressWithRelations = Prisma.AddressGetPayload<{
   include: {
@@ -31,6 +42,29 @@ type AddressResult = {
 };
 
 const router = express.Router();
+
+/** Публичная статистика для лендинга (без авторизации) */
+router.get('/stats', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const [reviewsCount, addressesWithReviews] = await Promise.all([
+      prisma.review.count({ where: { status: 'APPROVED' } }),
+      prisma.address.count({
+        where: {
+          apartments: {
+            some: {
+              reviews: {
+                some: { status: 'APPROVED' },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+    res.json({ reviewsCount, addressesCount: addressesWithReviews });
+  } catch (error) {
+    next(error);
+  }
+});
 
 /** Примерное расстояние в км между двумя точками (формула Haversine) */
 function distanceKm(
@@ -336,37 +370,37 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
     let addresses: AddressWithRelations[];
 
     if (bounds && typeof bounds === 'string') {
-      // Фильтрация по границам карты
+      // Фильтрация по границам карты + только дома с одобренными отзывами (на уровне БД)
       const [minLat, minLng, maxLat, maxLng] = bounds.split(',').map(parseFloat);
 
       addresses = (await prisma.address.findMany({
         where: {
           latitude: { gte: minLat, lte: maxLat },
           longitude: { gte: minLng, lte: maxLng },
+          ...HAS_APPROVED_REVIEW,
         },
         include: {
           apartments: {
             include: {
               reviews: {
-                // Отклонённые (REJECTED) не показываем на карте. Для авторизованных — APPROVED + PENDING, для остальных — только APPROVED
-                where: req.user
-                  ? { status: { in: ['APPROVED', 'PENDING'] } }
-                  : { status: 'APPROVED' },
+                where: { status: ReviewStatus.APPROVED },
               },
             },
           },
         },
       })) as AddressWithRelations[];
     } else {
-      // Все адреса (для начальной загрузки)
       addresses = (await prisma.address.findMany({
+        where: {
+          latitude: { not: null },
+          longitude: { not: null },
+          ...HAS_APPROVED_REVIEW,
+        },
         include: {
           apartments: {
             include: {
               reviews: {
-                where: req.user
-                  ? { status: { in: ['APPROVED', 'PENDING'] } }
-                  : { status: 'APPROVED' },
+                where: { status: ReviewStatus.APPROVED },
               },
             },
           },
@@ -375,16 +409,12 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
     }
 
     const markers = addresses
-      .filter((addr) => addr.latitude && addr.longitude)
+      .filter((addr) => addr.latitude != null && addr.longitude != null)
       .map((address) => {
         const reviewsCount = address.apartments.reduce(
           (sum, apt) => sum + apt.reviews.length,
           0
         );
-
-        if (reviewsCount === 0) {
-          return null;
-        }
 
         return {
           id: address.id,
@@ -395,8 +425,11 @@ router.get('/map', optionalAuth, async (req: Request, res: Response, next: NextF
           isActive: !!req.user,
         };
       })
-      .filter((marker): marker is NonNullable<typeof marker> => marker !== null); // Убираем null значения
+      // На всякий случай не отдаём точки без одобренных отзывов (дублирует условие в where)
+      .filter((m) => m.reviewsCount > 0);
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
     res.json({ markers });
   } catch (error) {
     next(error);
@@ -467,9 +500,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextF
         apartments: {
           include: {
             reviews: {
-              where: req.user
-                ? undefined
-                : { status: 'APPROVED' },
+              where: { status: ReviewStatus.APPROVED },
               select: { id: true },
             },
           },
@@ -481,11 +512,14 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextF
       return res.status(404).json({ message: 'Address not found' });
     }
 
-    const apartments = address.apartments.map((apt) => ({
-      id: apt.id,
-      number: apt.number,
-      reviewsCount: apt.reviews.length,
-    }));
+    // Список квартир для карты — только с опубликованными отзывами
+    const apartments = address.apartments
+      .map((apt) => ({
+        id: apt.id,
+        number: apt.number,
+        reviewsCount: apt.reviews.length,
+      }))
+      .filter((apt) => apt.reviewsCount > 0);
 
     res.json({
       address: {

@@ -28,6 +28,9 @@ export const translations = {
       map: 'Карта',
       reviews: 'Отзывы',
       about: 'О нас',
+      verifyEmailBadLink:
+        'Ссылка подтверждения неполная или устарела. Запросите новое письмо в профиле.',
+      verifyEmailToProfile: 'Перейти в профиль',
     },
     landing: {
       heroTitle1: 'Честная аренда',
@@ -58,6 +61,10 @@ export const translations = {
       ctaTitle: 'Готов смотреть отзывы по адресам?',
       ctaSub: 'Открой карту и выбери район или дом — все отзывы в одном месте.',
       orServer: 'Можно нажать кнопку ниже или отправить /server для нагрузки сервера.',
+      heroStatsReviewsLabel: 'отзывов',
+      heroStatsAddressesLabel: 'адресов',
+      forLandlords: 'Арендодатель? Можете отвечать на отзывы о своём жилье.',
+      forLandlordsLink: 'Подробнее',
     },
     footer: {
       map: 'Карта',
@@ -66,6 +73,7 @@ export const translations = {
       creators: 'Создатели',
       userAgreement: 'Пользовательское соглашение',
       contacts: 'Контакты',
+      copyright: '© {year} АрендаРейт',
     },
     about: {
       charter: 'Устав компании АрендаРейт',
@@ -216,6 +224,16 @@ export const translations = {
       submitting: 'Отправка...',
       bad: 'плохо',
       good: 'отлично',
+      errorAlertPrefix: 'Ошибка',
+      emailNotVerified:
+        'Чтобы оставить отзыв, подтвердите email в профиле: откройте письмо со ссылкой или нажмите «Выслать письмо ещё раз».',
+      emailVerifyModalTitle: 'Подтвердите электронную почту',
+      emailVerifyModalSubtitle: 'Это нужно, чтобы опубликовать отзыв',
+      emailVerifyModalBody:
+        'Мы отправили письмо со ссылкой. Откройте его (проверьте «Спам») или запросите новое письмо. В профиле можно сменить email и снова запросить подтверждение.',
+      emailVerifyModalBodyNoEmail:
+        'Сначала укажите и сохраните email в профиле, затем запросите письмо со ссылкой для подтверждения.',
+      emailVerifyOpenProfile: 'Открыть профиль',
     },
     editReview: {
       title: 'Редактировать отзыв',
@@ -338,6 +356,18 @@ export const translations = {
       avatarError: 'Ошибка при загрузке фото',
       avatarInvalidType: 'Выберите изображение (JPG, PNG или WebP)',
       avatarTooLarge: 'Размер файла не должен превышать 2 МБ',
+      emailVerifiedSuccess: 'Email подтверждён. Теперь можно оставлять отзывы.',
+      emailVerificationTitle: 'Подтвердите электронную почту',
+      emailVerificationSubtitle: 'Нужно для публикации отзывов',
+      emailVerificationBanner:
+        'Мы отправили письмо со ссылкой. Откройте его (проверьте папку «Спам») или запросите новое письмо кнопкой ниже.',
+      emailVerificationNoEmail:
+        'Укажите email в блоке ниже и нажмите «Сохранить», затем запросите письмо для подтверждения.',
+      emailVerificationScrollHint: 'К полю email',
+      sendVerificationEmail: 'Выслать письмо ещё раз',
+      verificationEmailSent: 'Письмо отправлено. Проверьте входящие и папку «Спам».',
+      verificationEmailError: 'Не удалось отправить письмо. Проверьте настройки почты на сервере.',
+      emailUpdatedVerifyHint: 'Email сохранён. Мы отправили письмо для подтверждения.',
     },
     address: {
       reviewsAtAddress: 'отзывов по этому дому',
@@ -449,6 +479,9 @@ export const translations = {
       map: 'Map',
       reviews: 'Reviews',
       about: 'About',
+      verifyEmailBadLink:
+        'This confirmation link is invalid or expired. Request a new email from your profile.',
+      verifyEmailToProfile: 'Go to profile',
     },
     landing: {
       heroTitle1: 'Honest rental',
@@ -479,6 +512,10 @@ export const translations = {
       ctaTitle: 'Ready to see reviews by address?',
       ctaSub: 'Open the map and choose an area or building — all reviews in one place.',
       orServer: 'You can use the button below or send /server for server load.',
+      heroStatsReviewsLabel: 'reviews',
+      heroStatsAddressesLabel: 'addresses',
+      forLandlords: 'Landlord? You can respond to reviews about your property.',
+      forLandlordsLink: 'Learn more',
     },
     footer: {
       map: 'Map',
@@ -487,6 +524,7 @@ export const translations = {
       creators: 'Creators',
       userAgreement: 'User agreement',
       contacts: 'Contacts',
+      copyright: '© {year} ArendaRate',
     },
     about: {
       charter: 'ArendaRate company charter',
@@ -637,6 +675,16 @@ export const translations = {
       submitting: 'Submitting...',
       bad: 'bad',
       good: 'excellent',
+      errorAlertPrefix: 'Error',
+      emailNotVerified:
+        'To leave a review, confirm your email in your profile: open the message we sent or use Resend confirmation email there.',
+      emailVerifyModalTitle: 'Confirm your email',
+      emailVerifyModalSubtitle: 'Required to publish a review',
+      emailVerifyModalBody:
+        'We emailed you a confirmation link. Open it (check spam) or request a new email. In your profile you can update your email and request confirmation again.',
+      emailVerifyModalBodyNoEmail:
+        'Add and save your email in your profile first, then request a confirmation email.',
+      emailVerifyOpenProfile: 'Open profile',
     },
     editReview: {
       title: 'Edit review',
@@ -759,6 +807,18 @@ export const translations = {
       avatarError: 'Error uploading photo',
       avatarInvalidType: 'Select an image (JPG, PNG or WebP)',
       avatarTooLarge: 'File size must not exceed 2 MB',
+      emailVerifiedSuccess: 'Email confirmed. You can leave reviews now.',
+      emailVerificationTitle: 'Confirm your email',
+      emailVerificationSubtitle: 'Required to publish reviews',
+      emailVerificationBanner:
+        'We sent you a message with a link. Open it (check spam) or request a new email with the button below.',
+      emailVerificationNoEmail:
+        'Enter your email in the section below, tap Save, then request a confirmation email.',
+      emailVerificationScrollHint: 'Go to email field',
+      sendVerificationEmail: 'Resend confirmation email',
+      verificationEmailSent: 'Email sent. Check your inbox and spam folder.',
+      verificationEmailError: 'Could not send email. Check server mail settings.',
+      emailUpdatedVerifyHint: 'Email saved. We sent you a confirmation email.',
     },
     address: {
       reviewsAtAddress: 'reviews at this building',

@@ -6,12 +6,14 @@ import { useRouter } from 'next/navigation'
 import { Header } from '@/components/Header'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from '@/lib/useTranslation'
+import { addressApi } from '@/lib/api'
 
 export default function LandingPage() {
   const router = useRouter()
   const { user, checkAuth } = useAuthStore()
   const { t } = useTranslation()
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [stats, setStats] = useState<{ reviewsCount: number; addressesCount: number } | null>(null)
 
   useEffect(() => {
     checkAuth().then(() => {
@@ -20,6 +22,10 @@ export default function LandingPage() {
       else setCheckingAuth(false)
     })
   }, [checkAuth, router])
+
+  useEffect(() => {
+    addressApi.getStats().then(setStats).catch(() => {})
+  }, [])
 
   if (checkingAuth) {
     return (
@@ -46,6 +52,11 @@ export default function LandingPage() {
             <p className="mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
               {t('landing.heroSubtitle')}
             </p>
+            {stats && (stats.reviewsCount > 0 || stats.addressesCount > 0) && (
+              <p className="mt-4 text-base text-primary-600 dark:text-primary-400 font-medium">
+                {stats.reviewsCount} {t('landing.heroStatsReviewsLabel')} · {stats.addressesCount} {t('landing.heroStatsAddressesLabel')}
+              </p>
+            )}
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/map"
@@ -66,6 +77,12 @@ export default function LandingPage() {
                 </Link>
               )}
             </div>
+            <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+              {t('landing.forLandlords')}{' '}
+              <Link href="/about" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                {t('landing.forLandlordsLink')}
+              </Link>
+            </p>
           </div>
         </div>
       </section>
@@ -82,7 +99,10 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-6 sm:p-8 border border-gray-100 dark:border-gray-700/50 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
+            <Link
+              href="/map"
+              className="rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-6 sm:p-8 border border-gray-100 dark:border-gray-700/50 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-lg transition-all duration-200 block"
+            >
               <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -90,8 +110,11 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('landing.mapTitle')}</h3>
               <p className="text-gray-600 dark:text-gray-300">{t('landing.mapDesc')}</p>
-            </div>
-            <div className="rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-6 sm:p-8 border border-gray-100 dark:border-gray-700/50 hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
+            </Link>
+            <Link
+              href="/reviews"
+              className="rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-6 sm:p-8 border border-gray-100 dark:border-gray-700/50 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-lg transition-all duration-200 block"
+            >
               <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -99,8 +122,11 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('landing.criteriaTitle')}</h3>
               <p className="text-gray-600 dark:text-gray-300">{t('landing.criteriaDesc')}</p>
-            </div>
-            <div className="rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-6 sm:p-8 border border-gray-100 dark:border-gray-700/50 hover:border-primary-200 dark:hover:border-primary-800 transition-colors sm:col-span-2 lg:col-span-1">
+            </Link>
+            <Link
+              href="/reviews"
+              className="rounded-2xl bg-gray-50 dark:bg-gray-800/80 p-6 sm:p-8 border border-gray-100 dark:border-gray-700/50 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-lg transition-all duration-200 block sm:col-span-2 lg:col-span-1"
+            >
               <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -108,7 +134,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('landing.safeTitle')}</h3>
               <p className="text-gray-600 dark:text-gray-300">{t('landing.safeDesc')}</p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -121,26 +147,30 @@ export default function LandingPage() {
             <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">{t('landing.howSub')}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 md:gap-6">
-            <div className="relative flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-full bg-primary-600 dark:bg-primary-500 text-white font-bold text-xl flex items-center justify-center shadow-lg shadow-primary-500/30">1</div>
               <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{t('landing.step1')}</h3>
               <p className="mt-2 text-gray-600 dark:text-gray-300">{t('landing.step1Desc')}</p>
             </div>
-            <div className="relative flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-full bg-primary-600 dark:bg-primary-500 text-white font-bold text-xl flex items-center justify-center shadow-lg shadow-primary-500/30">2</div>
               <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{t('landing.step2')}</h3>
               <p className="mt-2 text-gray-600 dark:text-gray-300">{t('landing.step2Desc')}</p>
             </div>
-            <div className="relative flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-full bg-primary-600 dark:bg-primary-500 text-white font-bold text-xl flex items-center justify-center shadow-lg shadow-primary-500/30">3</div>
               <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{t('landing.step3')}</h3>
               <p className="mt-2 text-gray-600 dark:text-gray-300">{t('landing.step3Desc')}</p>
             </div>
           </div>
-          <div className="mt-12 text-center">
+          <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link href="/map" className="inline-flex items-center text-primary-600 dark:text-primary-400 font-semibold hover:underline">
               {t('landing.toMap')}
               <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </Link>
+            <span className="text-gray-300 dark:text-gray-600 hidden sm:inline">·</span>
+            <Link href="/map" className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 rounded-lg transition-colors">
+              {t('common.addReview')}
             </Link>
           </div>
         </div>
@@ -148,13 +178,18 @@ export default function LandingPage() {
 
       {/* Цитата */}
       <section className="py-16 sm:py-24 bg-white dark:bg-gray-800/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <blockquote className="text-xl sm:text-2xl font-medium text-gray-700 dark:text-gray-200 leading-relaxed italic">
-            {t('landing.quote')}
-          </blockquote>
-          <p className="mt-6 text-gray-600 dark:text-gray-400">— {t('landing.mission')}</p>
-          <div className="mt-10">
-            <Link href="/about" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">{t('landing.moreAbout')}</Link>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative rounded-2xl border-l-4 border-primary-500 bg-primary-50/50 dark:bg-primary-900/20 dark:border-primary-600 px-6 sm:px-10 py-8 sm:py-10">
+            <blockquote className="text-xl sm:text-2xl font-medium text-gray-700 dark:text-gray-200 leading-relaxed italic text-center">
+              {t('landing.quote')}
+            </blockquote>
+            <p className="mt-6 text-center text-gray-600 dark:text-gray-400">— {t('landing.mission')}</p>
+            <div className="mt-10 text-center">
+              <Link href="/about" className="inline-flex items-center text-primary-600 dark:text-primary-400 font-semibold hover:underline">
+                {t('landing.moreAbout')}
+                <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -164,27 +199,40 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white">{t('landing.ctaTitle')}</h2>
           <p className="mt-4 text-lg text-primary-100">{t('landing.ctaSub')}</p>
-          <Link
-            href="/map"
-            className="mt-8 inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-primary-600 bg-white hover:bg-primary-50 rounded-xl shadow-lg transition-colors"
-          >
-            {t('landing.openMap')}
-            <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            </svg>
-          </Link>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/map"
+              className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-primary-600 bg-white hover:bg-primary-50 rounded-xl shadow-lg transition-colors"
+            >
+              {t('landing.openMap')}
+              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              </svg>
+            </Link>
+            {!user && (
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white border-2 border-white/80 hover:bg-white/10 rounded-xl transition-colors"
+              >
+                {t('landing.register')}
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-gray-100 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+      <footer className="py-8 bg-gray-100 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700" role="contentinfo">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-gray-600 dark:text-gray-400">
             <span className="whitespace-nowrap font-bold">
               <span className="text-gray-900 dark:text-white">Аренда</span><span className="logo-rate text-primary-400 dark:text-primary-400">Рейт</span>
             </span>
+            <span className="text-sm">
+              {t('footer.copyright').replace('{year}', String(new Date().getFullYear()))}
+            </span>
           </div>
-          <nav className="flex items-center gap-6 text-sm flex-wrap justify-center">
+          <nav className="flex items-center gap-6 text-sm flex-wrap justify-center" aria-label="Футер">
             <Link href="/map" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.map')}</Link>
             <Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.about')}</Link>
             <Link href="/about#team" className="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">{t('footer.creators')}</Link>

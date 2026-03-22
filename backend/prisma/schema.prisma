@@ -37,6 +37,7 @@ enum RatingCriterion {
 model User {
   id            String    @id @default(uuid())
   email         String?   @unique
+  emailVerified Boolean   @default(false)
   name          String
   avatar        String?
   passwordHash  String?
@@ -73,10 +74,23 @@ model User {
   marketerProfile   MarketerProfile?
   
   pendingYookassaPayments PendingYookassaPayment[]
-  
+  emailVerificationTokens EmailVerificationToken[]
+
   @@index([email])
   @@index([yandexId])
   @@index([vkId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // Квартиры, которые сдаёт арендодатель (landlordId = User.id)

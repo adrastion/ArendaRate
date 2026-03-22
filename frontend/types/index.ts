@@ -27,6 +27,10 @@ export enum RatingCriterion {
 export interface User {
   id: string;
   email: string | null;
+  /** Подтверждён ли email (обязателен для отзывов при регистрации по почте). */
+  emailVerified?: boolean;
+  /** Вход через Яндекс / VK — подтверждение почты для отзывов не требуется. */
+  isOAuthUser?: boolean;
   name: string;
   avatar: string | null;
   role: UserRole;

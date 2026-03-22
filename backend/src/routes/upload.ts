@@ -93,12 +93,15 @@ router.post(
 
       const avatarUrl = `/uploads/${file.filename}`;
 
-      const user = await prisma.user.update({
+      const updated = await prisma.user.update({
         where: { id: req.user!.id },
         data: { avatar: avatarUrl },
         select: {
           id: true,
           email: true,
+          emailVerified: true,
+          yandexId: true,
+          vkId: true,
           name: true,
           avatar: true,
           role: true,
@@ -106,7 +109,10 @@ router.post(
         },
       });
 
-      res.json({ user });
+      const { yandexId, vkId, ...userFields } = updated;
+      res.json({
+        user: { ...userFields, isOAuthUser: !!(yandexId || vkId) },
+      });
     } catch (error) {
       next(error);
     }

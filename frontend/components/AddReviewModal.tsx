@@ -217,8 +217,14 @@ export function AddReviewModal({
         })
       } catch (reviewError: any) {
         console.error('Review creation error:', reviewError)
-        const errorMessage = reviewError.response?.data?.message || reviewError.message || 'Ошибка при создании отзыва'
-        alert(`Ошибка: ${errorMessage}`)
+        const apiCode = reviewError.response?.data?.code as string | undefined
+        const errorMessage =
+          apiCode === 'EMAIL_NOT_VERIFIED'
+            ? t('addReview.emailNotVerified')
+            : reviewError.response?.data?.message ||
+              reviewError.message ||
+              t('addReview.genericError')
+        alert(`${t('addReview.errorAlertPrefix')}: ${errorMessage}`)
         if (reviewError.response?.data?.errors) {
           console.error('Validation errors:', reviewError.response.data.errors)
         }
@@ -247,7 +253,9 @@ export function AddReviewModal({
       onClose()
     } catch (error: any) {
       console.error('Unexpected error:', error)
-      alert(`Неожиданная ошибка: ${error.response?.data?.message || error.message || 'Попробуйте еще раз'}`)
+      alert(
+        `${t('addReview.errorAlertPrefix')}: ${error.response?.data?.message || error.message || t('addReview.genericError')}`
+      )
     } finally {
       setIsSubmitting(false)
     }

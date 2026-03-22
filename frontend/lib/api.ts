@@ -22,6 +22,15 @@ export function getAvatarUrl(avatar: string | null | undefined): string | null {
 // Для production: NEXT_PUBLIC_API_URL=https://arendrate.ru/api (с /api)
 const baseURL = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`
 
+/** База URL API для полноразмерного редиректа в браузере (как у axios `baseURL`). */
+export function getBrowserApiBase(): string {
+  const raw = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(
+    /\/$/,
+    ''
+  )
+  return raw.endsWith('/api') ? raw : `${raw}/api`
+}
+
 const api = axios.create({
   baseURL,
   headers: {
@@ -116,6 +125,12 @@ export const authApi = {
 
   getMe: async (): Promise<{ user: User }> => {
     const response = await api.get('/auth/me')
+    return response.data
+  },
+
+  /** Повторная отправка письма со ссылкой для подтверждения email. */
+  sendEmailVerification: async (): Promise<{ status: string }> => {
+    const response = await api.post('/auth/send-email-verification')
     return response.data
   },
 
@@ -247,23 +262,40 @@ export const addressApi = {
     return response.data
   },
 
+  /**
+   * Маркеры карты: без клиентского кэша axios-map, с cache-bust (прокси/CDN/браузер).
+   * Ответ дополнительно фильтруем по reviewsCount > 0 в MapPage.
+   */
   getMapMarkers: async (bounds?: string): Promise<{ markers: any[] }> => {
-    const cacheKey = getCacheKey('/addresses/map', { bounds })
+    const response = await api.get('/addresses/map', {
+      params: {
+        ...(bounds ? { bounds } : {}),
+        _t: Date.now(),
+      },
+      headers: {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      },
+    })
+    return response.data
+  },
+
+  /** Публичная статистика для лендинга */
+  getStats: async (): Promise<{ reviewsCount: number; addressesCount: number }> => {
+    const cacheKey = getCacheKey('/addresses/stats', {})
     const cached = getCached(cacheKey)
     if (cached) return cached
-
-    const response = await api.get('/addresses/map', { params: { bounds } })
+    const response = await api.get('/addresses/stats')
     setCache(cacheKey, response.data)
     return response.data
   },
 
+  /** Краткие данные по дому (для карты). Без кэша — список квартир зависит от одобренных отзывов. */
   getById: async (id: string): Promise<{ address: Address; apartments: Apartment[] }> => {
-    const cacheKey = getCacheKey(`/addresses/${id}`)
-    const cached = getCached(cacheKey)
-    if (cached) return cached
-
-    const response = await api.get(`/addresses/${id}`)
-    setCache(cacheKey, response.data)
+    const response = await api.get(`/addresses/${id}`, {
+      params: { _t: Date.now() },
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    })
     return response.data
   },
 
